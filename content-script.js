@@ -1,14 +1,35 @@
+window.addEventListener('load', function(){
 
-console.log("hello there");
+		loadHighlights();
+	});
 
-function Highlight(selection, id){
-	this.selection = selection;
-	this.note = "";
-	this.color = "";
-	this.id = id;
+
+function loadHighlights(){
+	console.log(window.location);
+	var location = ' ' + window.location;
+	browser.runtime.sendMessage({request: "loadHighlights", url: location}).then(highlights => {
+		console.log(highlights.response);
+		if(highlights.response.length > 0){
+			console.log("FOUND!");
+			var urlHls = highlights.response;
+			console.log(urlHls);
+			for (let h of urlHls){
+				var start = getNode(h.selection.start);
+				var startOffset = h.selection.startOffset;
+				var end  = getNode(h.selection.end);
+				var endOffset = h.selection.endOffset;
+
+				var range = document.createRange();
+				range.setStart(start, startOffset);
+				range.setEnd(end, endOffset);
+
+				styleRange(range, h.hid);
+			}
+		}
+
+	}).catch(error =>{console.log("ERROR while loading highlights : " + error)});
 
 }
-
 
 function makeid() {
    var length = 20;
@@ -22,37 +43,37 @@ function makeid() {
 }
 
 
-function ogetTextNodes(root, start, end, init=true){
-	if(init){
-		getTextNodes.textNodes = [];
-		getTextNodes.recording = false;
-		getTextNodes.done = false;
-	}
-
-
-	if(root.isEqualNode(start)){
-		getTextNodes.recording = true;
-		getTextNodes.textNodes.push(start);
-		return;
-	}
-	if (root.isEqualNode(end)){
-		console.log(root.parentElement);
-		getTextNodes.textNodes.push(root);
-		getTextNodes.done = true;
-		return;
-	}
-	if(getTextNodes.recording && root.nodeType == 3 && !(root.nodeValue.trim() === ''))
-		getTextNodes.textNodes.push(root);
-	
-
-
-	for(let e of root.childNodes){
-		getTextNodes(e, start, end, init=false);
-		if(getTextNodes.done)
-			return;
-		
-	}
-}
+//function ogetTextNodes(root, start, end, init=true){
+//	if(init){
+//		getTextNodes.textNodes = [];
+//		getTextNodes.recording = false;
+//		getTextNodes.done = false;
+//	}
+//
+//
+//	if(root.isEqualNode(start)){
+//		getTextNodes.recording = true;
+//		getTextNodes.textNodes.push(start);
+//		return;
+//	}
+//	if (root.isEqualNode(end)){
+//		console.log(root.parentElement);
+//		getTextNodes.textNodes.push(root);
+//		getTextNodes.done = true;
+//		return;
+//	}
+//	if(getTextNodes.recording && root.nodeType == 3 && !(root.nodeValue.trim() === ''))
+//		getTextNodes.textNodes.push(root);
+//	
+//
+//
+//	for(let e of root.childNodes){
+//		getTextNodes(e, start, end, init=false);
+//		if(getTextNodes.done)
+//			return;
+//		
+//	}
+//}
 
 function getTextNodes(root, start, end){
 	var frontier = Array.from(root.childNodes).reverse();
@@ -87,12 +108,33 @@ function getTextNodes(root, start, end){
 
 }
 
+function getNodeCoordinates(node){
+	var coordinates = [];
+	while(!node.isEqualNode(document.body)){
+		coordinates.unshift(Array.from(node.parentElement.childNodes).indexOf(node));
+		node = node.parentElement;
+	}
+	return coordinates;
+}
 
-function styleSelection(s, id){
-	for(let i = 0 ; i < s.rangeCount; i++){
+function getNode(coordinates){
+	var node = document.body;
+	for (let i of coordinates){
+		node = node.childNodes[i];
+	}
+	return node;
+}
+function styleRange(r, id){
 		var textNodes = [];
-		var r = s.getRangeAt(i);
-		
+
+		if(r.startContainer.isEqualNode(r.endContainer)){
+			var oldText = r.startContainer.textContent.slice(r.startOffset, r.endOffset);
+			r.commonAncestorContainer.parentElement.innerHTML = r.commonAncestorContainer.parentElement.innerHTML.replace(oldText, "<Kbit style='background-color: yellow;'>" + oldText + "</Kbit>");
+
+			return;
+		}
+
+
 		var start = r.startContainer;
 		var end = r.endContainer;
 
@@ -129,19 +171,39 @@ function styleSelection(s, id){
 			if(i == 0)
 				pe.insertBefore(remainingText, khelement);
 		}
-	}
 }
 
 browser.runtime.onMessage.addListener(function(request, sender, sendResponse){
-	if(request.msg == "ToggleHighlight")
+	if(request.request == "ToggleHighlight")
 	{
+		var highlights = [];
 
 		var selection = window.getSelection();
-		var id = makeid(); 
-		styleSelection(selection, id );	
-		var nh = new Highlight(selection, id);
-		return Promise.resolve({msg: nh});
+
+		for(let i = 0 ; i < selection.rangeCount; i++){
+			var r = selection.getRangeAt(i);
+			var id = makeid(); 
+			var nh = {
+				selection : {
+					start : getNodeCoordinates(r.startContainer),
+					startOffset : r.startOffset,
+					end: getNodeCoordinates(r.endContainer),
+					endOffset: r.endOffset
+				},
+				text: r.toString(),
+				note : "",
+				color : "",
+				hid : id,
+				url : r.startContainer.baseURI,
+				timestamp: new Date()
+			};
+
+			styleRange(r, id );	
+			console.log(nh);
+			highlights.push(nh);
+		}
+		console.log(highlights);
+		return Promise.resolve({response: highlights});
 	}
 });
 
-document.body.style.background = 'yellow';
