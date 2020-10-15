@@ -11,7 +11,7 @@ function Highlight(selection, id){
 
 
 function makeid() {
-   var length = 10;
+   var length = 20;
    var result           = '';
    var characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
    var charactersLength = characters.length;
@@ -22,7 +22,7 @@ function makeid() {
 }
 
 
-function getTextNodes(root, start, end, init=true){
+function ogetTextNodes(root, start, end, init=true){
 	if(init){
 		getTextNodes.textNodes = [];
 		getTextNodes.recording = false;
@@ -32,6 +32,7 @@ function getTextNodes(root, start, end, init=true){
 
 	if(root.isEqualNode(start)){
 		getTextNodes.recording = true;
+		getTextNodes.textNodes.push(start);
 		return;
 	}
 	if (root.isEqualNode(end)){
@@ -53,9 +54,41 @@ function getTextNodes(root, start, end, init=true){
 	}
 }
 
+function getTextNodes(root, start, end){
+	var frontier = Array.from(root.childNodes).reverse();
+	var recording = false;
+	var textNodes = [];
+
+
+	while(frontier.length > 0){
+		console.log(frontier);
+		var activeNode = frontier.pop();
+
+		if(activeNode.isEqualNode(start)){
+			recording = true;
+			console.log("starting");
+			textNodes.push(activeNode);
+			continue;
+		}
+		if (activeNode.isEqualNode(end)){
+			textNodes.push(activeNode);
+			console.log("ending");
+			break;
+		}
+		if(recording && activeNode.nodeType == 3 && !(activeNode.nodeValue.trim() === ''))
+			textNodes.push(activeNode);
+		for(let i = activeNode.childNodes.length - 1; i >= 0; i--)
+			frontier.push(activeNode.childNodes[i]);
+		
+
+	}
+
+	return textNodes;
+
+}
+
 
 function styleSelection(s, id){
-	console.log("here");
 	for(let i = 0 ; i < s.rangeCount; i++){
 		var textNodes = [];
 		var r = s.getRangeAt(i);
@@ -64,41 +97,37 @@ function styleSelection(s, id){
 		var end = r.endContainer;
 
 
-		getTextNodes(r.commonAncestorContainer, start, end);
-		textNodes = getTextNodes.textNodes;
-	
-		textNodes.unshift(start);
+		textNodes = getTextNodes(r.commonAncestorContainer, start, end);
+		//textNodes = getTextNodes.textNodes;
 		console.log(r);
 		console.log(textNodes);
 		for(let i = textNodes.length -1; i >= 0 ; i--){
 			var pe = textNodes[i].parentElement;	
 			var oldText = textNodes[i].nodeValue;
 
-			var khelement = document.createElement('kh-tag');
+			var khelement = document.createElement('Kbit');
 			khelement.style.background = "yellow";
 			khelement.id = id;
+
 			if(i == textNodes.length - 1)
 			{
 				khelement.textContent = oldText.slice(0,  r.endOffset);
-				var remainingText =document.createTextNode(oldText.slice (r.endOffset, oldText.length - 1 ));
+				var remainingText =document.createTextNode(oldText.slice (r.endOffset, oldText.length ));
 			}
 			else if(i == 0)
 			{
-				khelement.textContent = oldText.slice(r.startOffset, oldText.length - 1);
+				khelement.textContent = oldText.slice(r.startOffset, oldText.length );
 				var remainingText =document.createTextNode(oldText.slice (0, r.startOffset ));
 			}
-			else{
+			else
 				khelement.textContent = oldText;
-			}
+			
 			pe.replaceChild( khelement, textNodes[i]);
+			
 			if(i == textNodes.length - 1)
 				pe.insertBefore(remainingText, khelement.nextSibling);
 			if(i == 0)
 				pe.insertBefore(remainingText, khelement);
-		//	khelement.textContent = oldText;
-
-			
-			console.log(pe);
 		}
 	}
 }
@@ -110,7 +139,6 @@ browser.runtime.onMessage.addListener(function(request, sender, sendResponse){
 		var selection = window.getSelection();
 		var id = makeid(); 
 		styleSelection(selection, id );	
-		var activeEl = document.activeElement;
 		var nh = new Highlight(selection, id);
 		return Promise.resolve({msg: nh});
 	}
