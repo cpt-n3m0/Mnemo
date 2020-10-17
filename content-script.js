@@ -306,6 +306,6 @@ function toggleHighlight(clr)
 			highlights.push(nh);
 		}
 		console.log(highlights);
-		return Promise.resolve({response: highlights});
+		browser.runtime.sendMessage({request: "saveHighlight", hl: highlights});
 	}
 document.body.style.background = "green";

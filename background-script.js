@@ -58,12 +58,7 @@ browser.contextMenus.onClicked.addListener(function(info, tab){
 		case "log-selection":
 			console.log(tab.id);
 			browser.tabs.sendMessage(tab.id, {request : "ToggleHighlight"}).then(hl => {
-				if(hl.response){
-					for (let e of hl.response){
-						KB.addHighlight(e);
-						console.log(hl);
-					}
-				}
+				
 			}).catch(onError);
 			break;
 	}
@@ -71,11 +66,22 @@ browser.contextMenus.onClicked.addListener(function(info, tab){
 
 
 browser.runtime.onMessage.addListener(function(request, sender){
-	console.log("Message received " + request);
+	console.log("Message received: " );
+	console.log(request);
 	switch(request.request){
 		case "loadHighlights":
 			var hls = KB.getHighlights(request.url);
-			console.log("msg received, found :" + hls);
+			console.log("Found :");
+			console.log(hls);
+			console.log(KB);
 			return Promise.resolve( { response: hls});
+		case "saveHighlight":
+
+			if(request.hl){
+				for (let e of request.hl){
+					KB.addHighlight(e);
+					console.log(e);
+				}
+			}
 	}
 });
