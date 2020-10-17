@@ -9,8 +9,6 @@ function KnowledgeBase(){
 	this.getHighlights = function(url){
 		var urlHls = [];
 		for(let e of highlights){
-			console.log(e.url);
-			console.log(url);
 			if(e.url == url.trim())
 				urlHls.push(e);
 		}
@@ -36,10 +34,18 @@ function optionStatus(){
 
 browser.contextMenus.create({
 	id: "log-selection",
-	title: "highlight",
+	title: "Highlight",
 	//title: browser.i18n.getMessage("contextMenuItemSelectionLogger"),
 	contexts: ['selection']
 }, optionStatus);
+
+browser.contextMenus.create({
+	id: "unHighlight",
+	title: "Remove Highlight",
+	//title: browser.i18n.getMessage("contextMenuItemSelectionLogger"),
+	contexts: ['all']
+}, optionStatus);
+
 
 
 
@@ -51,7 +57,7 @@ browser.contextMenus.onClicked.addListener(function(info, tab){
 	switch(info.menuItemId){
 		case "log-selection":
 			console.log(tab.id);
-			browser.tabs.sendMessage(tab.id, {request : "ToggleHighlight"}).then(hl => { 
+			browser.tabs.sendMessage(tab.id, {request : "ToggleHighlight"}).then(hl => {
 				if(hl.response){
 					for (let e of hl.response){
 						KB.addHighlight(e);
