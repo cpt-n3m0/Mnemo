@@ -1,11 +1,17 @@
 
 function KnowledgeBase(){
 	var highlights = [];
-	this.addHL = function(hl) {
-		highlights[hl.id] = hl;
-		return hl.length;
+	this.addHighlight = (hl) =>{ highlights.push(hl)};
+	this.removeHighlight = function(hl){
+		let pos  = highlights.map((e)=> {return e.uid}).indexOf(hl.uid);
+		console.log(pos);
+		highlights.splice(pos, 1);
 	};
-	this.removeHL = function(hl){};
+	this.updateHighlight = function(hl) {
+		for(let i in highlights)
+			if(highlights[i].uid == hl.uid)
+				highlights[i] = hl;
+	};
 	this.getHighlights = function(url){
 		var urlHls = [];
 		for(let e of highlights){
@@ -17,7 +23,7 @@ function KnowledgeBase(){
 	this.print = () => {
 		console.log(highlights);
 	};
-	this.addHighlight = (hl) =>{ highlights.push(hl)};
+	
 
 }
 
@@ -83,5 +89,12 @@ browser.runtime.onMessage.addListener(function(request, sender){
 					console.log(e);
 				}
 			}
+			break;
+		case "updateHighlight":
+			KB.updateHighlight(request.newHighlight);
+			break;
+		case "removeHighlight":
+			KB.removeHighlight(request.toRemove);
+			break;
 	}
 });
