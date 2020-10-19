@@ -59,7 +59,7 @@ function clearSelection(selector){
 	for (let e of selector){
 		if(e.nodeType == 3)
 			continue;
-		e.style.border = "none";
+		e.className = "";
 	}
 }
 
@@ -70,21 +70,21 @@ function setupHoverMenuContent(activeHighlight, hovmen){
 		if(e.nodeType == 3)
 			continue;
 		if(activeHighlight && e.dataset.clr == activeHighlight.color)
-			e.style.border = "2px solid black";
+			e.className = "selected";
 		e.onclick = () => {
 			console.log(e);
 			if(activeHighlight == null)
 			{
 				console.log(e.dataset.clr);
 				addHighlight(e.dataset.clr);
-				e.style.border = "2px solid black";
+				e.className = "selected";
 				closeHoverMenu();
 			}
 			else if( activeHighlight.color == e.dataset.clr)
 			{
 				console.log(activeHighlight);
 				removeHighlight(activeHighlight);
-				e.style.border = "2px solid black";
+				e.className = "selected";
 				closeHoverMenu();
 			}
 			else
@@ -96,7 +96,7 @@ function setupHoverMenuContent(activeHighlight, hovmen){
 					ae.style.background = e.id;
 				}
 
-				e.style.border = "2px solid black";
+				e.className = "selected";
 				updateHighlight(activeHighlight);
 
 			}
@@ -108,7 +108,7 @@ function hoverMenu(activeHighlight=null){
 	hovmen.id = "kbytes-hovering-menu";
 	hovmen.scrolling = "no";
 	hovmen.src = browser.runtime.getURL("resources/menu.html");
-	hovmen.style = "height: 80px !important; width: 150px !important; top:" + mouseY + "px; left:" + mouseX+ "px; display: block;";
+	hovmen.style = "height: 50px !important; width: 150px !important; top:" + mouseY + "px; left:" + mouseX+ "px; display: block;";
 	injectCSS(`
 		 #kbytes-hovering-menu {
 		    display: none;

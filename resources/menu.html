@@ -6,38 +6,52 @@
     <title>javascript test</title>
     <style>
 	body{
-		background-color: white;
+		background-color: black;
 	}
-	p{
-		color: black;
+
+	.selected {
+		border: 2px solid grey;
+	}
+	#color-selector > div{
+		border-radius : 10px;	
+		margin: 0 auto;
 	}
 	#color-selector{
-		padding: 5px;
-		height: 80px;
+		margin: 0 auto;
+		height: 40px;
 		width: 150px;
 
 	}
 	#yellow{
-		height: 40px;
-		width: 40px;
+		height: 30px;
+		width: 30px;
 		background-color:#fff600 ;
 		display: inline-block;
 
 	}
+	
 	#green{
-		height: 40px;
-		width: 40px;
+		height: 30px;
+		width: 30px;
 		background-color: #01ca00;
 		display: inline-block;
 
 	}
 	#red{
-		height: 40px;
-		width: 40px;
+		height: 30px;
+		width: 30px;
 		background-color: #e00200;
 		display: inline-block;
 
 	}
+	#blue{
+		height: 30px;
+		width: 30px;
+		background-color:#00ffff ;
+		display: inline-block;
+	}
+
+
     </style>
   </head>
   <body>
@@ -45,6 +59,7 @@
 		<div id="yellow" data-clr="#fff600"></div>
 		<div id="red" data-clr="#e00200"></div>
 		<div id="green" data-clr="#01ca00"></div>
+		<div id="blue" data-clr="#00ffff"></div>
 	  </div>
 
   </body>
