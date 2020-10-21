@@ -32,15 +32,9 @@ function loadHighlights(){
 			
 				let start = document.evaluate(startquery , document, null, XPathResult.ANY_TYPE, null).iterateNext();
 				let end = document.evaluate(endquery, document, null, XPathResult.ANY_TYPE, null).iterateNext();
-				console.log("START/END");
-				console.log(start);
-				console.log(endquery);
-				console.log(end);
 				let range = document.createRange();
 				range.setStart(start, startOffset);
 				range.setEnd(end, endOffset);
-
-				console.log(range);
 
 				styleRange(range, h);
 			}
@@ -171,9 +165,19 @@ function makeid() {
 
 
 function getTextNodes(root, start, end){
-	var frontier = Array.from(root.childNodes).reverse();
-	var recording = false;
 	var textNodes = [];
+	var rootChildNodes = Array.from(root.childNodes)
+	let startRootChildNode = start;
+	while(startRootChildNode.parentNode != root)
+		startRootChildNode = startRootChildNode.parentNode;
+
+	
+	let startPos = rootChildNodes.map((e)=> {return e.isEqualNode(startRootChildNode)}).indexOf(true);
+
+	var frontier = rootChildNodes.slice(startPos, rootChildNodes.length).reverse();
+
+
+	var recording = false;
 
 
 	while(frontier.length > 0){
