@@ -4,13 +4,11 @@ function trackMouse(event){
 	mouseY = event.clientY;
 	
 }
-function checkDisplay(event){
+function openHoverMenu(event){
 	let s = window.getSelection();
 	if(s.anchorNode != s.focusNode || s.anchorOffset != s.focusOffset)
-	{
-
 		hoverMenu();
-	}
+
 }
 function closeHoverMenu(e=null){
 	const menuframe = document.getElementById("kbytes-hovering-menu");
@@ -19,23 +17,32 @@ function closeHoverMenu(e=null){
 	}
 }
 function loadHighlights(){
-	console.log(window.location);
 	var location = ' ' + window.location;
 	browser.runtime.sendMessage({request: "loadHighlights", url: location}).then(highlights => {
-		console.log(highlights.response);
 		if(highlights.response.length > 0){
 			var urlHls = highlights.response;
 			console.log(urlHls);
 			for (let h of urlHls){
-				var start = getNode(h.selection.start);
-				var startOffset = h.selection.startOffset;
-				var end  = getNode(h.selection.end);
-				var endOffset = h.selection.endOffset;
-				console.log(start);
-				console.log(end);
-				var range = document.createRange();
+				let start = getNode(h.selection.start);
+				let startOffset = h.selection.startOffset;
+				let end  = getNode(h.selection.end);
+				let endOffset = h.selection.endOffset;
+				
+
+				if(start == null || end == null)
+				{
+					 let startquery = '//' + h.selection.startContainerTag +'[contains(text(), "' + h.selection.startContext + '")]/text()';
+					 let endquery = '//' + h.selection.endContainerTag +'[contains(text(), "' + h.selection.endContext + '")]/text()';
+			
+					 start = document.evaluate(startquery , document, null, XPathResult.ANY_TYPE, null).iterateNext();
+					 end = document.evaluate(endquery, document, null, XPathResult.ANY_TYPE, null).iterateNext();
+				}
+				
+				let range = document.createRange();
 				range.setStart(start, startOffset);
 				range.setEnd(end, endOffset);
+
+				console.log(range);
 
 				styleRange(range, h);
 			}
@@ -46,7 +53,7 @@ function loadHighlights(){
 }
 loadHighlights();
 document.onmousemove = trackMouse;
-document.onmouseup = checkDisplay;
+document.onmouseup = openHoverMenu;
 document.onmousedown = closeHoverMenu;
 function injectCSS(cssContent){
 	const style = document.createElement('style');
@@ -79,7 +86,9 @@ function setupHoverMenuContent(activeHighlight, hovmen){
 				addHighlight(e.dataset.clr);
 				e.className = "selected";
 				closeHoverMenu();
+				return;
 			}
+	
 			else if( activeHighlight.color == e.dataset.clr)
 			{
 				console.log(activeHighlight);
@@ -93,7 +102,7 @@ function setupHoverMenuContent(activeHighlight, hovmen){
 				activeHighlight.color = e.dataset.clr;
 				activeElements = document.querySelectorAll('kbit[data-uid = "' + activeHighlight.uid + '" ]')
 				for (let ae of activeElements){
-					ae.style.background = e.id;
+					ae.style.background = e.dataset.clr;
 				}
 
 				e.className = "selected";
@@ -102,18 +111,28 @@ function setupHoverMenuContent(activeHighlight, hovmen){
 			}
 		}
 	}
+	if(activeHighlight){
+		let notesContainer = idoc.getElementById("notes-container");
+		notesContainer.style.display = "block";
+		let note = idoc.getElementById("note");
+		note.value = activeHighlight.note;
+		note.onkeyup = () => console.log(note.value);
+		note.onchange = () => {
+			activeHighlight.note = note.value;
+			updateHighlight(activeHighlight);
+		}
+	}
 }
 function hoverMenu(activeHighlight=null){
 	const hovmen = document.createElement('iframe');
 	hovmen.id = "kbytes-hovering-menu";
 	hovmen.scrolling = "no";
 	hovmen.src = browser.runtime.getURL("resources/menu.html");
-	hovmen.style = "height: 50px !important; width: 150px !important; top:" + mouseY + "px; left:" + mouseX+ "px; display: block;";
+	let height = activeHighlight?"150":"50"
+	hovmen.style = "height: " + height + "px !important; width: 150px !important; top:" + mouseY + "px; left:" + mouseX+ "px; display: block;";
 	injectCSS(`
 		 #kbytes-hovering-menu {
 		    display: none;
-		    top: 50px;
-		    right: 50px;
 		    z-index: 2147483645 !important;
 		    animation-delay: 0s !important;
 		    animation-direction: normal !important;
@@ -195,6 +214,8 @@ function getNodeCoordinates(node){
 function getNode(coordinates){
 	var node = document.body;
 	for (let i of coordinates){
+		if (node == undefined)
+			return null;
 		node = node.childNodes[i];
 	}
 	return node;
@@ -230,9 +251,7 @@ function styleRange(r, highlight){
 			var khelement = document.createElement('kbit');
 			khelement.style.background = color;
 			khelement.dataset.uid = uid;
-			khelement.onclick = () => {
-				hoverMenu(highlight);
-			}
+			khelement.onclick = () => hoverMenu(highlight);
 
 			if(i == textNodes.length - 1)
 			{
@@ -301,8 +320,12 @@ function addHighlight(clr)
 			let nh = {
 				selection : {
 					start : getNodeCoordinates(r.startContainer),
+					startContainerTag : r.startContainer.parentElement.localName,
+					startContext: r.startContainer.textContent,
 					startOffset : r.startOffset,
 					end: getNodeCoordinates(r.endContainer),
+					endContainerTag : r.endContainer.parentElement.localName,
+					endContext: r.endContainer.textContent,
 					endOffset: r.endOffset
 				},
 				text: r.toString(),

@@ -4,7 +4,6 @@ function KnowledgeBase(){
 	this.addHighlight = (hl) =>{ highlights.push(hl)};
 	this.removeHighlight = function(hl){
 		let pos  = highlights.map((e)=> {return e.uid}).indexOf(hl.uid);
-		console.log(pos);
 		highlights.splice(pos, 1);
 	};
 	this.updateHighlight = function(hl) {
@@ -33,42 +32,10 @@ function optionStatus(){
 	console.log(browser.runtime.lastError);
 }
 
-
-
-
-//browser.runtime.onMessage.addListener(handleMessage);
-
-browser.contextMenus.create({
-	id: "log-selection",
-	title: "Highlight",
-	//title: browser.i18n.getMessage("contextMenuItemSelectionLogger"),
-	contexts: ['selection']
-}, optionStatus);
-
-browser.contextMenus.create({
-	id: "unHighlight",
-	title: "Remove Highlight",
-	//title: browser.i18n.getMessage("contextMenuItemSelectionLogger"),
-	contexts: ['all']
-}, optionStatus);
-
-
-
-
 function onError(error){
 	console.log(error);
 }
 
-browser.contextMenus.onClicked.addListener(function(info, tab){
-	switch(info.menuItemId){
-		case "log-selection":
-			console.log(tab.id);
-			browser.tabs.sendMessage(tab.id, {request : "ToggleHighlight"}).then(hl => {
-				
-			}).catch(onError);
-			break;
-	}
-});
 
 
 browser.runtime.onMessage.addListener(function(request, sender){
