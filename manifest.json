@@ -1,5 +1,5 @@
 {
-	"name" : "KnowledgeHub",
+	"name" : "myKbits",
 	"author" : "Farouq Jouti",
 	"permissions": ["contextMenus",  "tabs", "menus"],
 

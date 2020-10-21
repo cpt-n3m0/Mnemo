@@ -23,21 +23,19 @@ function loadHighlights(){
 			var urlHls = highlights.response;
 			console.log(urlHls);
 			for (let h of urlHls){
-				let start = getNode(h.selection.start);
-				let startOffset = h.selection.startOffset;
-				let end  = getNode(h.selection.end);
 				let endOffset = h.selection.endOffset;
+				let startOffset = h.selection.startOffset;
 				
 
-				if(start == null || end == null)
-				{
-					 let startquery = '//' + h.selection.startContainerTag +'[contains(text(), "' + h.selection.startContext + '")]/text()';
-					 let endquery = '//' + h.selection.endContainerTag +'[contains(text(), "' + h.selection.endContext + '")]/text()';
+				let startquery = '//' + h.selection.startContainerTag +'/text()[contains(., "' + h.selection.startContext + '")]';
+				let endquery = '//' + h.selection.endContainerTag +'/text()[contains(., "' + h.selection.endContext + '")]';
 			
-					 start = document.evaluate(startquery , document, null, XPathResult.ANY_TYPE, null).iterateNext();
-					 end = document.evaluate(endquery, document, null, XPathResult.ANY_TYPE, null).iterateNext();
-				}
-				
+				let start = document.evaluate(startquery , document, null, XPathResult.ANY_TYPE, null).iterateNext();
+				let end = document.evaluate(endquery, document, null, XPathResult.ANY_TYPE, null).iterateNext();
+				console.log("START/END");
+				console.log(start);
+				console.log(endquery);
+				console.log(end);
 				let range = document.createRange();
 				range.setStart(start, startOffset);
 				range.setEnd(end, endOffset);
@@ -190,7 +188,7 @@ function getTextNodes(root, start, end){
 			textNodes.push(activeNode);
 			break;
 		}
-		if(recording && activeNode.nodeType == 3 && !(activeNode.nodeValue.trim() === ''))
+		if(recording && activeNode.nodeType == 3)
 			textNodes.push(activeNode);
 		for(let i = activeNode.childNodes.length - 1; i >= 0; i--)
 			frontier.push(activeNode.childNodes[i]);
@@ -275,39 +273,7 @@ function styleRange(r, highlight){
 		}
 }
 
-//browser.runtime.onMessage.addListener(function(request, sender, sendResponse){
-//	if(request.request == "ToggleHighlight")
-//	{
-//		var highlights = [];
-//
-//		var selection = window.getSelection();
-//
-//		for(let i = 0 ; i < selection.rangeCount; i++){
-//			var r = selection.getRangeAt(i);
-//			var id = makeid();
-//			var nh = {
-//				selection : {
-//					start : getNodeCoordinates(r.startContainer),
-//					startOffset : r.startOffset,
-//					end: getNodeCoordinates(r.endContainer),
-//					endOffset: r.endOffset
-//				},
-//				text: r.toString(),
-//				note : "",
-//				color : "",
-//				uid : id,
-//				url : r.startContainer.baseURI,
-//				timestamp: new Date()
-//			};
-//
-//			styleRange(r, id );
-//			console.log(nh);
-//			highlights.push(nh);
-//		}
-//		console.log(highlights);
-//		return Promise.resolve({response: highlights});
-//	}
-//});
+
 function addHighlight(clr)
 	{
 		var highlights = [];
