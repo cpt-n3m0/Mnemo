@@ -16,6 +16,32 @@ function closeHoverMenu(e=null){
 		menuframe.parentNode.removeChild(menuframe);
 	}
 }
+function getXPathQueryText(context){
+	if(context.indexOf("\"") < 0 && context.indexOf("'") < 0)
+		return `"${context}"`;
+
+	let query = "concat("
+
+	let portion="";
+	for(let c of context){
+		if(c == '"'){
+			query += `, "${portion}"`;
+			query += ", '\"'";
+			portion = "";
+			continue;
+		}
+		if(c == "'"){
+			query += `, "${portion}"`;
+			query += ', "\'"';
+			portion="";
+			continue;
+		}
+		portion += c;
+	}
+	query = query.slice(0, 7) + query.slice(8, query.length);
+	query += ")"
+	return query
+}
 function loadHighlights(){
 	var location = ' ' + window.location;
 	browser.runtime.sendMessage({request: "loadHighlights", url: location}).then(highlights => {
@@ -27,12 +53,17 @@ function loadHighlights(){
 				let startOffset = h.selection.startOffset;
 				
 
-				let startquery = '//' + h.selection.startContainerTag +'/text()[contains(., "' + h.selection.startContext + '")]';
-				let endquery = '//' + h.selection.endContainerTag +'/text()[contains(., "' + h.selection.endContext + '")]';
+				let startquery = `//${h.selection.startContainerTag}/text()[contains(.,  ${getXPathQueryText(h.selection.startContext)})]`;
+				let endquery = `//${h.selection.endContainerTag}/text()[contains(.,  ${getXPathQueryText(h.selection.endContext)})]`;
 			
+				console.log(startquery);
+				console.log(endquery);
+				console.log(getXPathQueryText(h.selection.startContext));
 				let start = document.evaluate(startquery , document, null, XPathResult.ANY_TYPE, null).iterateNext();
 				let end = document.evaluate(endquery, document, null, XPathResult.ANY_TYPE, null).iterateNext();
 				let range = document.createRange();
+				console.log(start);
+				console.log(end);
 				range.setStart(start, startOffset);
 				range.setEnd(end, endOffset);
 
@@ -71,10 +102,8 @@ function setupHoverMenuContent(activeHighlight, hovmen){
 		if(activeHighlight && e.dataset.clr == activeHighlight.color)
 			e.className = "selected";
 		e.onclick = () => {
-			console.log(e);
 			if(activeHighlight == null)
 			{
-				console.log(e.dataset.clr);
 				addHighlight(e.dataset.clr);
 				e.className = "selected";
 				closeHoverMenu();
@@ -108,7 +137,6 @@ function setupHoverMenuContent(activeHighlight, hovmen){
 		notesContainer.style.display = "block";
 		let note = idoc.getElementById("note");
 		note.value = activeHighlight.note;
-		note.onkeyup = () => console.log(note.value);
 		note.onchange = () => {
 			activeHighlight.note = note.value;
 			updateHighlight(activeHighlight);
@@ -204,23 +232,14 @@ function getTextNodes(root, start, end){
 
 }
 
-function getNodeCoordinates(node){
-	var coordinates = [];
-	while(!node.isEqualNode(document.body)){
-		coordinates.unshift(Array.from(node.parentElement.childNodes).indexOf(node));
-		node = node.parentElement;
-	}
-	return coordinates;
-}
 
-function getNode(coordinates){
-	var node = document.body;
-	for (let i of coordinates){
-		if (node == undefined)
-			return null;
-		node = node.childNodes[i];
-	}
-	return node;
+function escapeSpecialCharacters(text, xquery = false){
+	return text.replace(/&/g, "&amp;")
+		.replace(/>/g, "&gt;")
+		.replace(/</g, "&lt;")
+		.replace(/\xa0/g, "&nbsp;");
+		
+
 }
 function styleRange(r, highlight){
 		let textNodes = [];
@@ -230,13 +249,16 @@ function styleRange(r, highlight){
 
 		if(r.startContainer.isEqualNode(r.endContainer)){
 			let oldText = r.startContainer.textContent.slice(r.startOffset, r.endOffset);
+			// escape special characters
+			
+			oldText = escapeSpecialCharacters(oldText);
+			console.log(oldText);
+			console.log(r.commonAncestorContainer.parentElement.innerHTML);
 			r.commonAncestorContainer.parentElement.innerHTML = r.commonAncestorContainer.parentElement.innerHTML.replace(oldText, "<kbit style='background-color: "+ color + ";' data-uid= " + uid + ">" + oldText + "</kbit>");
-			let h = document.querySelector('kbit[data-uid ="' + highlight.uid + '"');
+			let h = document.querySelector('kbit[data-uid ="' + highlight.uid + '"]');
 			
 			h.onclick = () => hoverMenu(highlight);
 			
-
-
 			return;
 		}
 
@@ -289,11 +311,9 @@ function addHighlight(clr)
 			let id = makeid();
 			let nh = {
 				selection : {
-					start : getNodeCoordinates(r.startContainer),
 					startContainerTag : r.startContainer.parentElement.localName,
 					startContext: r.startContainer.textContent,
 					startOffset : r.startOffset,
-					end: getNodeCoordinates(r.endContainer),
 					endContainerTag : r.endContainer.parentElement.localName,
 					endContext: r.endContainer.textContent,
 					endOffset: r.endOffset
@@ -338,4 +358,4 @@ function updateHighlight(hl){
 	browser.runtime.sendMessage({request: "updateHighlight", newHighlight: hl});
 	
 }
-document.body.style.background = "green";
+document.body.style.border= "5px solid green";
