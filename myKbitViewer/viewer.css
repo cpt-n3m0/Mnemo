@@ -39,3 +39,38 @@
 
 /* Change the background color of the dropdown button when the dropdown content is shown */
 .dropdown:hover .dropbtn {background-color: #3e8e41;} 
+
+
+body{
+	background-color: #292929;
+}
+
+.entries-container{
+	display:block;
+	width: 100%;
+	height: inherit;
+}
+.entry {
+	display: flex;
+	justify-content: flex-start;
+	align-items: flex-start;
+	margin-bottom: 5px;
+	position: relative;
+	background-color: rgba(255, 255, 255, 0.5);
+}
+.entry:hover{
+	background-color: rgba(255, 255, 255, 0.7);
+
+}
+.entry-color {
+	height: 100%;
+	width: 10px;
+	background-color: yellow;
+	position: absolute;
+}
+.entry-content {
+	vertical-align: top;
+	width: 100%;
+	padding-left: 15px;
+	margin-right: 5px;
+}

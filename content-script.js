@@ -330,7 +330,9 @@ function addHighlight(clr)
 			styleRange(r, nh );
 			highlights.push(nh);
 		}
-		browser.runtime.sendMessage({request: "saveHighlight", hl: highlights});
+		browser.runtime.sendMessage({request: "saveHighlight", hl: highlights}).then(() => {
+			browser.runtime.sendMessage({request: "updateViewerContent"});
+		});
 	}
 function removeHighlight(hl){
 	console.log("removing ");
@@ -352,11 +354,15 @@ function removeHighlight(hl){
 		pn.insertBefore(textNode, c);
 		pn.removeChild(c);
 	}
-	browser.runtime.sendMessage({request: "removeHighlight", toRemove: hl});
+	browser.runtime.sendMessage({request: "removeHighlight", toRemove: hl}).then(() => {
+			browser.runtime.sendMessage({request: "updateViewerContent"});
+		});
 }
 
 function updateHighlight(hl){
-	browser.runtime.sendMessage({request: "updateHighlight", newHighlight: hl});
+	browser.runtime.sendMessage({request: "updateHighlight", newHighlight: hl}).then(() => {
+			browser.runtime.sendMessage({request: "updateViewerContent"});
+		});
 	
 }
 document.body.style.border= "5px solid green";
