@@ -13,5 +13,10 @@
 	"background":{
 		"scripts": ["background-script.js"]
 	},
-	"web_accessible_resources": ["resources/menu.html", "resources/menu.css"]
+	"web_accessible_resources": ["resources/menu.html", "resources/menu.css"],
+
+	"sidebar_action":{
+		"default_title": "My Notes",
+		"default_panel": "myKbitViewer/viewer.html"
+	}
 }

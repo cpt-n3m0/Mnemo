@@ -220,7 +220,7 @@ function getTextNodes(root, start, end){
 			textNodes.push(activeNode);
 			break;
 		}
-		if(recording && activeNode.nodeType == 3)
+		if(recording && activeNode.nodeType == 3 && activeNode.textContent.trim() != '')
 			textNodes.push(activeNode);
 		for(let i = activeNode.childNodes.length - 1; i >= 0; i--)
 			frontier.push(activeNode.childNodes[i]);
@@ -254,7 +254,7 @@ function styleRange(r, highlight){
 			oldText = escapeSpecialCharacters(oldText);
 			console.log(oldText);
 			console.log(r.commonAncestorContainer.parentElement.innerHTML);
-			r.commonAncestorContainer.parentElement.innerHTML = r.commonAncestorContainer.parentElement.innerHTML.replace(oldText, "<kbit style='background-color: "+ color + ";' data-uid= " + uid + ">" + oldText + "</kbit>");
+			r.commonAncestorContainer.parentElement.innerHTML = r.commonAncestorContainer.parentElement.innerHTML.replace(oldText, "<kbit style='background-color: "+ color + ";display:inline;' data-uid= " + uid + ">" + oldText + "</kbit>");
 			let h = document.querySelector('kbit[data-uid ="' + highlight.uid + '"]');
 			
 			h.onclick = () => hoverMenu(highlight);
@@ -274,6 +274,7 @@ function styleRange(r, highlight){
 
 			var khelement = document.createElement('kbit');
 			khelement.style.background = color;
+			khelement.style.display = "inline";
 			khelement.dataset.uid = uid;
 			khelement.onclick = () => hoverMenu(highlight);
 

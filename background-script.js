@@ -23,6 +23,9 @@ function KnowledgeBase(){
 		console.log(highlights);
 	};
 	
+	this.getAllHighlights = () => {
+		return highlights;
+	}
 
 }
 
@@ -63,5 +66,8 @@ browser.runtime.onMessage.addListener(function(request, sender){
 		case "removeHighlight":
 			KB.removeHighlight(request.toRemove);
 			break;
+		case "viewer-getHighlights":
+			console.log("viewer requuest received");
+			return Promise.resolve({highlights: KB.getAllHighlights() });
 	}
 });
