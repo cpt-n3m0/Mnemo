@@ -7,7 +7,7 @@
 	"version" : "1.0",
 	"content_scripts" : [{
 		"matches": ["<all_urls>"],
-		"js": ["content-script.js"]
+		"js": [ "cs/utils.js", "cs/highlights.js", "cs/hoverMenu.js", "cs/main.js"  ]
 	}],
 
 	"background":{
@@ -17,6 +17,6 @@
 
 	"sidebar_action":{
 		"default_title": "My Notes",
-		"default_panel": "myKbitViewer/viewer.html"
+		"default_panel": "sidebar/viewer.html"
 	}
 }
