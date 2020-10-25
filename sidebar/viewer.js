@@ -20,13 +20,18 @@ function buildHLDisplayElement(highlight, tabId){
 */
 	newEntry.innerHTML = `
 		 <div class="entry-color" data-uid="${highlight.uid}" style="background-color: ${highlight.color};"></div>
-                                <div class="entry-content"><p>${highlight.text} </p></div>
-                                <div class="entry-options">
-                                        <img class="show-note" src="../icons/ellipses.svg" title="view note">
-                                        <img class="delete-highlight" src="../icons/delete.svg" title="delete highlight">
-                                        <img class="gotolink" src="../icons/external-link.svg" title="go to source">
+                                <div class="entry-content"><p>${highlight.text} </p>
+					<div class="entry-note-container" style="display: ${highlight.note != ""?"block":"none"}">		
+						<p class="entry-note"> ${highlight.note} </p>
+					</div>
+					<div class="entry-options">
+						<img class="show-note" src="../icons/ellipses.svg" title="view note">
+						<img class="delete-highlight" src="../icons/delete.svg" title="delete highlight">
+						<img class="gotolink" src="../icons/external-link.svg" title="go to source">
 
-                 		</div>
+					</div>
+				</div>
+                                
 		</div>
 
 	`;
@@ -41,6 +46,14 @@ function buildHLDisplayElement(highlight, tabId){
 		browser.tabs.update(tabId, {url: highlight.url});
 		updateContent(tabId, null, null);
 	}
+
+	let options = newEntry.querySelector(".entry-options");
+	newEntry.onmouseover = () => {
+		options.style.display="block";
+	};
+	newEntry.onmouseout = () => {
+		options.style.display="none";
+	};
 	return newEntry;
 	
 }

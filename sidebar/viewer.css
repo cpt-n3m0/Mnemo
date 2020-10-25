@@ -74,12 +74,32 @@ body{
 	width: 100%;
 	padding-left: 15px;
 	margin-right: 5px;
+	display: inline-block;
 }
 .entry-options {
-	vertical-align: bottom;
+	position: absolute;
+	right : 0px;
+	top: 0px;
+	padding-right: 5px;
+	padding-bottom : 5px;
+	display:none;
+	width: 100px;
+	height: 15px;
+	text-align: right;
+}
+.entry-note-container {
+	border-left : 5px solid grey;
+	display: none;
+	width : 80%;
+	margin-left: 2%;
+	padding-top : 0px;
+	padding-left: 5px;
+}
+.entry-note-container > p{
+	vertical-align : top;
 }
 .entry-options > img{
-	width: 10px;
+	width: 13px !important;
 }
 .entry-options >img:hover {
 	cursor: pointer;
