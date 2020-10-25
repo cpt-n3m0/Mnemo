@@ -75,3 +75,12 @@ body{
 	padding-left: 15px;
 	margin-right: 5px;
 }
+.entry-options {
+	vertical-align: bottom;
+}
+.entry-options > img{
+	width: 10px;
+}
+.entry-options >img:hover {
+	cursor: pointer;
+}	

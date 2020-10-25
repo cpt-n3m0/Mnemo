@@ -108,6 +108,7 @@ function removeHighlight(hl){
 		pn.removeChild(c);
 	}
 	browser.runtime.sendMessage({request: "removeHighlight", toRemove: hl}).then(() => {
+			console.log("updating view after remove");
 			browser.runtime.sendMessage({request: "updateViewerContent"});
 		});
 }
