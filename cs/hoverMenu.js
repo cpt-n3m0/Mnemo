@@ -84,15 +84,22 @@ function hoverMenu(activeHighlight=null){
 	hovmen.onload = () => setupHoverMenuContent(activeHighlight, hovmen);
 	document.body.append(hovmen);
 }
+var isHoverMenuOpen = false;
 function closeHoverMenu(e=null){
 	const menuframe = document.getElementById("kbytes-hovering-menu");
 	if (menuframe != null){
 		menuframe.parentNode.removeChild(menuframe);
 	}
+	isHoverMenuOpen = false;
 }
 function openHoverMenu(event){
+	if(isHoverMenuOpen)
+		closeHoverMenu();
+	isHoverMenuOpen = true;
 	let s = window.getSelection();
 	if(s.anchorNode != s.focusNode || s.anchorOffset != s.focusOffset)
 		hoverMenu();
+
+
 
 }

@@ -1,12 +1,14 @@
-function setupContainerBehavior(newEntry, tabId, highlight){
+function setupContainerBehavior(newEntry, tab, highlight){
 	let deleteBtn = newEntry.querySelector("img.delete-highlight" );
 	deleteBtn.onclick = () => {
 		removeHighlight(highlight);
-		updateContent(tabId, null, null);
+		updateContent(tab, null, null);
 	}
 	let goToLinkBtn =newEntry.querySelector("img.gotolink" ); 
 	goToLinkBtn.onclick = () => {
-		browser.tabs.update(tabId, {url: highlight.url});
+		console.log(highlight.url);
+		console.log(tab);
+		browser.tabs.update(tab.tabId, {url: highlight.url});
 		updateContent(tabId, null, null);
 	}
 
@@ -26,8 +28,16 @@ function setupContainerBehavior(newEntry, tabId, highlight){
 			noteContent.innerHTML = "<img src='../icons/ellipses.svg' title='show note'>";
 
 	};
+
+	let copyBtn = newEntry.querySelector(".copy");
+	copyBtn.onclick =  function copy(){
+		navigator.clipboard.writeText(highlight.text)
+
+		  console.log(`copied ${highlight.text}`);
+
+	}
 }
-function buildHLDisplayElement(highlight, tabId){
+function buildHLDisplayElement(highlight, tab){
 
 	let newEntry = document.createElement("div");
 	newEntry.className = "entry";
@@ -41,14 +51,14 @@ function buildHLDisplayElement(highlight, tabId){
 					<div class="entry-options">
 						<img class="delete-highlight" src="../icons/delete.svg" title="delete highlight">
 						<img class="gotolink" src="../icons/external-link.svg" title="go to source">
-
+						<img class="copy" src="../icons/copy.svg" title="copy content">
 					</div>
 				</div>
                                 
 		</div>
 	`;
 
-	setupContainerBehavior(newEntry, tabId, highlight);
+	setupContainerBehavior(newEntry, tab, highlight);
 	
 	return newEntry;
 	

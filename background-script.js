@@ -1,36 +1,74 @@
-
-function KnowledgeBase(){
-	var highlights = [];
-	this.addHighlight = (hl) =>{ highlights.push(hl)};
-	this.removeHighlight = function(hl){
-		let pos  = highlights.map((e)=> {return e.uid}).indexOf(hl.uid);
-		highlights.splice(pos, 1);
-	};
-	this.updateHighlight = function(hl) {
-		for(let i in highlights)
-			if(highlights[i].uid == hl.uid)
-				highlights[i] = hl;
-	};
-	this.getHighlights = function(url){
-		var urlHls = [];
-		for(let e of highlights){
-			if(e.url == url.trim())
-				urlHls.push(e);
-		}
-		return urlHls;
-	};
-	this.print = () => {
-		console.log(highlights);
-	};
-	
-	this.getAllHighlights = () => {
-		return highlights;
-	}
-
+	async addHighlight(highlight){
+		await	fetch(`http://localhost:8082/addHighlight`, {
+			 method: 'PUT', 
+    mode: 'cors', 
+    cache: 'no-cache',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(data) // body data type must match "Content-Type" header
+		})
+		.catch((error) => {
+			console.error('Error:', error);
+		});	
+}
+async removeHighlight(highlight){
+		await	fetch(`http://localhost:8082/removeHighlight/${highlight.uid}`, {
+			 method: 'DELETE', 
+    mode: 'cors', 
+    cache: 'no-cache',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+		})
+		.catch((error) => {
+			console.error('Error:', error);
+		});	
+}
+async updateHighlight(highlight){
+		await	fetch(`http://localhost:8082/updateHighlight`, {
+			 method: 'PUT', 
+    mode: 'cors', 
+    cache: 'no-cache',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(highlight) // body data type must match "Content-Type" header
+		})
+		.catch((error) => {
+			console.error('Error:', error);
+		});	
 }
 
-let KB = new KnowledgeBase()
-KB.print();
+async getHighlights(url){
+	var pageHighlightsResponse = await	fetch(`http://localhost:8082/updateHighlight/${highlight.uid}`, {
+			 method: 'GET', 
+    mode: 'cors', 
+    cache: 'no-cache',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+		)
+		.catch((error) => {
+			console.error('Error:', error);
+		});
+	return pageHighlightsResponse;
+}
+async getAllHighlights(){
+	var HighlightsResponse = await	fetch(`http://localhost:8082/getAllHighlights`, {
+		method: 'GET', 
+    mode: 'cors', 
+    cache: 'no-cache',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+		})
+		.catch((error) => {
+			console.error('Error:', error);
+		});
+	return pageHighlightsResponse;
+}
+
 function optionStatus(){
 	console.log(browser.runtime.lastError);
 }
@@ -40,34 +78,38 @@ function onError(error){
 }
 
 
+var highlight_cache = {};
+var cache_relevant = false;
 
 browser.runtime.onMessage.addListener(function(request, sender){
 	console.log("Message received: " );
 	console.log(request);
 	switch(request.request){
 		case "loadHighlights":
-			var hls = KB.getHighlights(request.url);
-			console.log("Found :");
-			console.log(hls);
-			console.log(KB);
+			var hls = getHighlights(request.url); 
 			return Promise.resolve( { response: hls});
 		case "saveHighlight":
-
 			if(request.hl){
 				for (let e of request.hl){
-					KB.addHighlight(e);
-					console.log(e);
+					addHighlight(e);
 				}
 			}
+			cache_relevant = false;
 			break;
 		case "updateHighlight":
-			KB.updateHighlight(request.newHighlight);
+			updateHighlight(request.newHighlight);
+			cache_relevant = false;
 			break;
 		case "removeHighlight":
-			KB.removeHighlight(request.toRemove);
+			removeHighlight(request.toRemove);
 			break;
 		case "viewer-getHighlights":
-			console.log("viewer requuest received");
-			return Promise.resolve({highlights: KB.getAllHighlights() });
+			console.log("viewer request received");
+			if (!cache_relevant){
+				getAllHighlights().then(response => highlight_cache = response.body);
+				cache_relevant = true;
+			}
+			return Promise.resolve({highlights: highlight_cache });
 	}
 });
+console.log("Loaded");

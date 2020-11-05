@@ -8,18 +8,12 @@ function loadHighlights(){
 				let endOffset = h.selection.endOffset;
 				let startOffset = h.selection.startOffset;
 
-
 				let startquery = `//${h.selection.startContainerTag}/text()[contains(.,  ${getXPathQueryText(h.selection.startContext)})]`;
 				let endquery = `//${h.selection.endContainerTag}/text()[contains(.,  ${getXPathQueryText(h.selection.endContext)})]`;
-
-				console.log(startquery);
-				console.log(endquery);
-				console.log(getXPathQueryText(h.selection.startContext));
 				let start = document.evaluate(startquery , document, null, XPathResult.ANY_TYPE, null).iterateNext();
 				let end = document.evaluate(endquery, document, null, XPathResult.ANY_TYPE, null).iterateNext();
+
 				let range = document.createRange();
-				console.log(start);
-				console.log(end);
 				range.setStart(start, startOffset);
 				range.setEnd(end, endOffset);
 
@@ -62,27 +56,6 @@ function addHighlight(clr)
 			highlights.push(nh);
 		}
 
-
-  /*		let data = `
-  			url=${highlights[0].url}
-  			extractors=topics
-  			cleanup.mode=cleanHTML
-
-  		`;
-  		console.log(data);
-  		const tags = await fetch("https://api.textrazor.com", {
-  			method: 'POST',
-  			mode: 'no-cors',
-  			headers:{
-  				'Content-Type': "application/x-www-form-urlencoded",
-  				'X-TextRazor-Key': "xxxxx",
-  				'Access-Control-Allow-Origin': 'https://api.textrazor.com'
-
-  			},
-  			body : data
-  		});
-  		console.log(tags.json());
-  */
 		browser.runtime.sendMessage({request: "saveHighlight", hl: highlights}).then(() => {
 			browser.runtime.sendMessage({request: "updateViewerContent"});
 		});
@@ -90,23 +63,26 @@ function addHighlight(clr)
 function removeHighlight(hl){
 	console.log("removing ");
 	let highlightComponents = document.querySelectorAll('kbit[data-uid="' + hl.uid +'"]');
-	console.log(highlightComponents);
+
 	for(let c of highlightComponents){
 		console.log(c);
 		let pn = c.parentNode;
 		let prevText = (c.previousSibling && c.previousSibling.nodeType == 3)?c.previousSibling.wholeText:"";
 		let nextText = (c.nextSibling && c.nextSibling.nodeType == 3)?c.nextSibling.wholeText:"";
-
 		let textNode = document.createTextNode( prevText + c.lastChild.wholeText + nextText);
-		console.log("inserted");
+		
 		console.log(textNode);
+
 		if(prevText != "")
 			pn.removeChild(c.previousSibling);
 		if(nextText != "")
 			pn.removeChild(c.nextSibling);
+
 		pn.insertBefore(textNode, c);
 		pn.removeChild(c);
+		console.log("removed kbit node");
 	}
+
 	browser.runtime.sendMessage({request: "removeHighlight", toRemove: hl}).then(() => {
 			console.log("updating view after remove");
 			browser.runtime.sendMessage({request: "updateViewerContent"});

@@ -72,8 +72,6 @@ function escapeSpecialCharacters(text, xquery = false){
 
 }
 function styleRange(r, highlight){
-		let textNodes = [];
-
 		let uid = highlight.uid;
 		let color = highlight.color;
 
@@ -88,46 +86,46 @@ function styleRange(r, highlight){
 			let h = document.querySelector('kbit[data-uid ="' + highlight.uid + '"]');
 
 			h.onclick = () => hoverMenu(highlight);
-
 			return;
 		}
 
-
-		var start = r.startContainer;
-		var end = r.endContainer;
-
-
-		textNodes = getTextNodes(r.commonAncestorContainer, start, end);
+		let start = r.startContainer;
+		let end = r.endContainer;
+		let	textNodes = getTextNodes(r.commonAncestorContainer, start, end);
+	
 		for(let i = textNodes.length -1; i >= 0 ; i--){
-			var pe = textNodes[i].parentElement;
-			var oldText = textNodes[i].nodeValue;
+				let pe = textNodes[i].parentElement;
+				let oldText = textNodes[i].nodeValue;
 
-			var khelement = document.createElement('kbit');
-			khelement.style.background = color;
-			khelement.style.display = "inline";
-			khelement.dataset.uid = uid;
-			khelement.onclick = () => hoverMenu(highlight);
+				let kbit = document.createElement('kbit');
+				kbit.style.background = color;
+				kbit.style.display = "inline";
+				kbit.dataset.uid = uid;
+				kbit.onclick = () => hoverMenu(highlight);
 
-			if(i == textNodes.length - 1)
-			{
-				khelement.textContent = oldText.slice(0,  r.endOffset);
-				var remainingText =document.createTextNode(oldText.slice (r.endOffset, oldText.length ));
-			}
-			else if(i == 0)
-			{
-				khelement.textContent = oldText.slice(r.startOffset, oldText.length );
-				var remainingText =document.createTextNode(oldText.slice (0, r.startOffset ));
-			}
-			else
-				khelement.textContent = oldText;
+				if(i == textNodes.length - 1)
+				{
+					kbit.textContent = oldText.slice(0,  r.endOffset);
+					var remainingText =document.createTextNode(oldText.slice (r.endOffset, oldText.length ));
+				}
+				else if(i == 0)
+				{
+					kbit.textContent = oldText.slice(r.startOffset, oldText.length );
+					var remainingText =document.createTextNode(oldText.slice (0, r.startOffset ));
+				}
+				else
+					kbit.textContent = oldText;
 
-			pe.replaceChild( khelement, textNodes[i]);
+				pe.replaceChild( kbit, textNodes[i]);
 
-			if(i == textNodes.length - 1)
-				pe.insertBefore(remainingText, khelement.nextSibling);
-			if(i == 0)
-				pe.insertBefore(remainingText, khelement);
+				if(i == textNodes.length - 1)
+					pe.insertBefore(remainingText, kbit.nextSibling);
+				if(i == 0)
+					pe.insertBefore(remainingText, kbit);
+
+				console.log(`${i}/${textNodes.length}`)
 		}
+	  console.log("range Styling completed");
 }
 
 

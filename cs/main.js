@@ -1,16 +1,13 @@
- var mouseX, mouseY;
-console.log("here333");
+console.log("hereee");
+var mouseX, mouseY;
 function trackMouse(event){
 	mouseX = event.clientX;
 	mouseY = event.clientY;
 
 }
-
-loadHighlights();
 document.onmousemove = trackMouse;
 document.onmouseup = openHoverMenu;
 document.onmousedown = closeHoverMenu;
 
-
-console.log("here333");
+loadHighlights();
 document.body.style.border= "5px solid green";
