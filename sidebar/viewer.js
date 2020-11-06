@@ -43,7 +43,7 @@ function buildHLDisplayElement(highlight, tab){
 	newEntry.className = "entry";
 
 	newEntry.innerHTML = `
-		 <div class="entry-color" data-uid="${highlight.uid}" style="background-color: ${highlight.color};"></div>
+		 <div class="entry-color" data-uid="${highlight._id}" style="background-color: ${highlight.color};"></div>
                                 <div class="entry-content"><p>${highlight.text} </p>
 					<div class="entry-note-container" style="display: ${highlight.note != ""?"block":"none"}">		
 						<img src='../icons/ellipses.svg' title='showNote'>

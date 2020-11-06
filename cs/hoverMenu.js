@@ -26,7 +26,7 @@ function setupHoverMenuContent(activeHighlight, hovmen){
 			{
 				clearSelection(colorOptions.childNodes);
 				activeHighlight.color = e.dataset.clr;
-				activeElements = document.querySelectorAll('kbit[data-uid = "' + activeHighlight.uid + '" ]')
+				activeElements = document.querySelectorAll('kbit[data-uid = "' + activeHighlight._id + '" ]')
 				for (let ae of activeElements){
 					ae.style.background = e.dataset.clr;
 				}

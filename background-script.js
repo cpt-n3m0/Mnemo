@@ -1,19 +1,21 @@
-	async addHighlight(highlight){
-		await	fetch(`http://localhost:8082/addHighlight`, {
+var dburl = "http://localhost:8082";
+
+async function addHighlight(highlight){
+		await	fetch(`${dburl}/addHighlight`, {
 			 method: 'PUT', 
     mode: 'cors', 
     cache: 'no-cache',
     headers: {
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify(data) // body data type must match "Content-Type" header
+    body: JSON.stringify(highlight) // body data type must match "Content-Type" header
 		})
 		.catch((error) => {
 			console.error('Error:', error);
 		});	
 }
-async removeHighlight(highlight){
-		await	fetch(`http://localhost:8082/removeHighlight/${highlight.uid}`, {
+async function removeHighlight(highlight){
+		await	fetch(`${dburl}/removeHighlight/${highlight._id}`, {
 			 method: 'DELETE', 
     mode: 'cors', 
     cache: 'no-cache',
@@ -25,8 +27,8 @@ async removeHighlight(highlight){
 			console.error('Error:', error);
 		});	
 }
-async updateHighlight(highlight){
-		await	fetch(`http://localhost:8082/updateHighlight`, {
+async function updateHighlight(highlight){
+		await	fetch(`${dburl}/updateHighlight`, {
 			 method: 'PUT', 
     mode: 'cors', 
     cache: 'no-cache',
@@ -40,22 +42,15 @@ async updateHighlight(highlight){
 		});	
 }
 
-async getHighlights(url){
-	var pageHighlightsResponse = await	fetch(`http://localhost:8082/updateHighlight/${highlight.uid}`, {
-			 method: 'GET', 
-    mode: 'cors', 
-    cache: 'no-cache',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-		)
+async function getHighlights(url){
+	var pageHighlightsResponse = await	fetch(`${dburl}/getHighlights/${new URLSearchParams({"url" :url})}/`)
 		.catch((error) => {
 			console.error('Error:', error);
 		});
 	return pageHighlightsResponse;
 }
-async getAllHighlights(){
-	var HighlightsResponse = await	fetch(`http://localhost:8082/getAllHighlights`, {
+async function getAllHighlights(){
+	var HighlightsResponse = await	fetch(`${dburl}/getAllHighlights`, {
 		method: 'GET', 
     mode: 'cors', 
     cache: 'no-cache',
@@ -66,7 +61,7 @@ async getAllHighlights(){
 		.catch((error) => {
 			console.error('Error:', error);
 		});
-	return pageHighlightsResponse;
+	return HighlightsResponse;
 }
 
 function optionStatus(){
@@ -79,14 +74,17 @@ function onError(error){
 
 
 var highlight_cache = {};
-var cache_relevant = false;
+var isCacheCoherent = false;
 
-browser.runtime.onMessage.addListener(function(request, sender){
+browser.runtime.onMessage.addListener(async function(request, sender){
 	console.log("Message received: " );
 	console.log(request);
 	switch(request.request){
 		case "loadHighlights":
-			var hls = getHighlights(request.url); 
+			var hls;
+			 await getHighlights(request.url).then(response => response.json())
+																	.then(data => hls = data);
+																  
 			return Promise.resolve( { response: hls});
 		case "saveHighlight":
 			if(request.hl){
@@ -94,21 +92,24 @@ browser.runtime.onMessage.addListener(function(request, sender){
 					addHighlight(e);
 				}
 			}
-			cache_relevant = false;
+			isCacheCoherent = false;
 			break;
 		case "updateHighlight":
 			updateHighlight(request.newHighlight);
-			cache_relevant = false;
+			isCacheCoherent = false;
 			break;
 		case "removeHighlight":
 			removeHighlight(request.toRemove);
+			isCacheCoherent = false;
 			break;
 		case "viewer-getHighlights":
 			console.log("viewer request received");
-			if (!cache_relevant){
-				getAllHighlights().then(response => highlight_cache = response.body);
-				cache_relevant = true;
+			if (!isCacheCoherent){
+				await getAllHighlights().then(response => response.json())
+																.then( data => highlight_cache = data);
+				isCacheCoherent = true;
 			}
+			console.log(highlight_cache);
 			return Promise.resolve({highlights: highlight_cache });
 	}
 });

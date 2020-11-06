@@ -72,7 +72,7 @@ function escapeSpecialCharacters(text, xquery = false){
 
 }
 function styleRange(r, highlight){
-		let uid = highlight.uid;
+		let uid = highlight._id;
 		let color = highlight.color;
 
 		if(r.startContainer.isEqualNode(r.endContainer)){
@@ -83,7 +83,7 @@ function styleRange(r, highlight){
 			console.log(oldText);
 			console.log(r.commonAncestorContainer.parentElement.innerHTML);
 			r.commonAncestorContainer.parentElement.innerHTML = r.commonAncestorContainer.parentElement.innerHTML.replace(oldText, "<kbit style='background-color: "+ color + ";display:inline;' data-uid= " + uid + ">" + oldText + "</kbit>");
-			let h = document.querySelector('kbit[data-uid ="' + highlight.uid + '"]');
+			let h = document.querySelector('kbit[data-uid ="' + highlight._id + '"]');
 
 			h.onclick = () => hoverMenu(highlight);
 			return;

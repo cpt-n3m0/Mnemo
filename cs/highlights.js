@@ -1,5 +1,5 @@
 function loadHighlights(){
-	var location = ' ' + window.location;
+	var location = (' ' + window.location).trim();
 	browser.runtime.sendMessage({request: "loadHighlights", url: location}).then(highlights => {
 		if(highlights.response.length > 0){
 			var urlHls = highlights.response;
@@ -46,7 +46,7 @@ function addHighlight(clr)
 				text: r.toString(),
 				note : "",
 				color : clr,
-				uid : id,
+				_id : id,
 				url : r.startContainer.baseURI,
 				tags: [],
 				timestamp: new Date()
@@ -62,7 +62,7 @@ function addHighlight(clr)
 	}
 function removeHighlight(hl){
 	console.log("removing ");
-	let highlightComponents = document.querySelectorAll('kbit[data-uid="' + hl.uid +'"]');
+	let highlightComponents = document.querySelectorAll('kbit[data-uid="' + hl._id +'"]');
 
 	for(let c of highlightComponents){
 		console.log(c);

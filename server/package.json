@@ -1,0 +1,23 @@
+{
+  "name": "mykbits",
+  "version": "1.0.0",
+  "description": "A firefox add on similar to chrome's weava but open source and with a focus on not only knowledge storage and organization but also efficient and seamless knowledge retrieval. The building blocks of knowledge gathering are highlights which are supplemented with notes. This project is still in active development with many more features to come.",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cpt-n3m0/myKbits.git"
+  },
+  "author": "farouq jouti",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/cpt-n3m0/myKbits/issues"
+  },
+  "homepage": "https://github.com/cpt-n3m0/myKbits#readme",
+  "dependencies": {
+    "cors": "^2.8.5"
+  }
+}
