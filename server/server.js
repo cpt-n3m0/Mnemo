@@ -47,6 +47,7 @@ class MongoDB {
 	}
 	async getHighlights(url){
 		let result;
+		console.log(`query url = ${url}`);
 		if(this.db){
 			 result = await this.db.collection("highlights").find({"url" : url }).toArray();
 		}
@@ -54,6 +55,7 @@ class MongoDB {
 			console.error("Database instance not found");
 		return result;
 	}
+
 	async getAll(){
 
 		let results;
@@ -90,8 +92,12 @@ app.delete("/removeHighlight/:id", function(req, res){
 app.get("/getHighlights/:url/", function(req, res){
 	console.log(`Getting highlights for  ${req.params.url}`);
 	try {
-		db.getHighlights(req.params.url.split("=")[1]).then(results =>res.send(results))
-																									.catch(err => console.error(err, "Unable to fetch url highlights"));
+		db.getHighlights(req.params.url.replace("url=", "")).then(results =>{
+			console.log(`found ${results.length}`);
+			res.send(results);
+
+		})
+		.catch(err => console.error(err, "Unable to fetch url highlights"));
 
 	}
 	catch(err){

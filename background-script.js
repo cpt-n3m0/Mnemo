@@ -73,19 +73,21 @@ function onError(error){
 }
 
 
-var highlight_cache = {};
-var isCacheCoherent = false;
+/*var highlight_cache = {};*/
+//var isCacheCoherent = false;
 
-browser.runtime.onMessage.addListener(async function(request, sender){
+browser.runtime.onMessage.addListener( function(request, sender){
 	console.log("Message received: " );
 	console.log(request);
 	switch(request.request){
 		case "loadHighlights":
-			var hls;
-			 await getHighlights(request.url).then(response => response.json())
-																	.then(data => hls = data);
+			 return getHighlights(request.url).then(response => response.json())
+				.then(data => { 
+					console.log("data loaded : ");
+					console.log(data);
+					return {response : data};
+				});
 																  
-			return Promise.resolve( { response: hls});
 		case "saveHighlight":
 			if(request.hl){
 				for (let e of request.hl){
@@ -104,13 +106,16 @@ browser.runtime.onMessage.addListener(async function(request, sender){
 			break;
 		case "viewer-getHighlights":
 			console.log("viewer request received");
-			if (!isCacheCoherent){
-				await getAllHighlights().then(response => response.json())
-																.then( data => highlight_cache = data);
-				isCacheCoherent = true;
-			}
-			console.log(highlight_cache);
-			return Promise.resolve({highlights: highlight_cache });
+			/*if (!isCacheCoherent){*/
+				
+			/*isCacheCoherent = true;*/
+			return getAllHighlights().then(response => response.json())
+																.then( data => { 
+																		return {highlights: data};
+																});
+			/*}*/
+			//console.log(highlight_cache);
+			/*return Promise.resolve({highlights: highlight_cache });*/
 	}
 });
 console.log("Loaded");

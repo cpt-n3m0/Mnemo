@@ -1,6 +1,9 @@
 function loadHighlights(){
 	var location = (' ' + window.location).trim();
+	console.log("sending request");
 	browser.runtime.sendMessage({request: "loadHighlights", url: location}).then(highlights => {
+		console.log("response received");
+		console.log(highlights);
 		if(highlights.response.length > 0){
 			var urlHls = highlights.response;
 			console.log(urlHls);

@@ -71,6 +71,31 @@ function escapeSpecialCharacters(text, xquery = false){
 		
 
 }
+function getHoverColor(color, n){
+	if(color.startsWith("rgb")){
+		let vals = color.slice(4, -1).split(",");
+		vals[0] = (parseInt(vals[0], 10) + n).toString(10);
+		vals[1] = (parseInt(vals[1], 10) + n).toString(10);
+	
+		let finalVal =`rgb(${vals.join(',')})`;
+		return  finalVal;
+	}
+	if(color[0] == '#'){
+		let addHex = (hexStr, v) => {
+		let intval =  parseInt(hexStr, 16) + v ;
+		if (intval > 255)
+			return "FF";
+		if (intval < 0)
+			return "00";
+		return intval.toString(16);
+		}
+		let finalVal = "";
+		finalVal += addHex(color.slice(1,3),n );
+		finalVal += addHex(color.slice(3,5),n );
+
+		return "#" + finalVal + color.slice(start=5);
+	}
+}
 function styleRange(r, highlight){
 		let uid = highlight._id;
 		let color = highlight.color;
@@ -98,8 +123,27 @@ function styleRange(r, highlight){
 				let oldText = textNodes[i].nodeValue;
 
 				let kbit = document.createElement('kbit');
-				kbit.style.background = color;
+				kbit.style.backgroundColor = color;
 				kbit.style.display = "inline";
+
+				kbit.onmouseover = () => {
+					kbit.style.cursor = "pointer";
+					let kbits = document.querySelectorAll('kbit[data-uid ="' + highlight._id + '"]');
+					for (let e of kbits)
+					{
+						console.log(e.style.backgroundColor);
+						e.style.backgroundColor = getHoverColor(e.style.backgroundColor, -40);
+
+					}
+
+				}
+
+			  kbit.onmouseout = () => {
+					let kbits = document.querySelectorAll('kbit[data-uid ="' + highlight._id + '"]');
+					for (let e of kbits)
+						e.style.backgroundColor = getHoverColor(e.style.backgroundColor, 40);
+				}
+				
 				kbit.dataset.uid = uid;
 				kbit.onclick = () => hoverMenu(highlight);
 
