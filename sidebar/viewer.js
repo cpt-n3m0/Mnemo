@@ -9,7 +9,7 @@ function setupContainerBehavior(newEntry, tab, highlight){
 		console.log(highlight.url);
 		console.log(tab);
 		browser.tabs.update(tab.tabId, {url: highlight.url});
-		updateContent(tabId, null, null);
+		updateContent(tab.tabId, null, null);
 	}
 
 	let options = newEntry.querySelector(".entry-options");

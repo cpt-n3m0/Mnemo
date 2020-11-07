@@ -80,14 +80,14 @@ function getHoverColor(color, n){
 		let finalVal =`rgb(${vals.join(',')})`;
 		return  finalVal;
 	}
-	if(color[0] == '#'){
+	else if(color[0] == '#'){
 		let addHex = (hexStr, v) => {
-		let intval =  parseInt(hexStr, 16) + v ;
-		if (intval > 255)
-			return "FF";
-		if (intval < 0)
-			return "00";
-		return intval.toString(16);
+						let intval =  parseInt(hexStr, 16) + v ;
+						if (intval > 255)
+							return "FF";
+						if (intval < 0)
+							return "00";
+						return intval.toString(16);
 		}
 		let finalVal = "";
 		finalVal += addHex(color.slice(1,3),n );
@@ -96,21 +96,42 @@ function getHoverColor(color, n){
 		return "#" + finalVal + color.slice(start=5);
 	}
 }
+
+function setupKbitBehaviour(highlight)
+{
+		let kbits = document.querySelectorAll('kbit[data-uid ="' + highlight._id + '"]');
+		for (let kbit of kbits)
+		{
+				kbit.style.backgroundColor = highlight.color;
+				kbit.style.display = "inline";
+				kbit.onmouseover = () => {
+							kbit.style.cursor = "pointer";
+							for (let e of kbits)
+								e.style.backgroundColor = getHoverColor(e.style.backgroundColor, -40);
+						}
+
+			  kbit.onmouseout = () => {
+					let kbits = document.querySelectorAll('kbit[data-uid ="' + highlight._id + '"]');
+					for (let e of kbits)
+						e.style.backgroundColor = getHoverColor(e.style.backgroundColor, 40);
+				};
+				kbit.onclick = () => hoverMenu(highlight);
+
+		}
+		
+				
+}
+
 function styleRange(r, highlight){
 		let uid = highlight._id;
 		let color = highlight.color;
 
 		if(r.startContainer.isEqualNode(r.endContainer)){
 			let oldText = r.startContainer.textContent.slice(r.startOffset, r.endOffset);
-			// escape special characters
-
 			oldText = escapeSpecialCharacters(oldText);
-			console.log(oldText);
-			console.log(r.commonAncestorContainer.parentElement.innerHTML);
-			r.commonAncestorContainer.parentElement.innerHTML = r.commonAncestorContainer.parentElement.innerHTML.replace(oldText, "<kbit style='background-color: "+ color + ";display:inline;' data-uid= " + uid + ">" + oldText + "</kbit>");
-			let h = document.querySelector('kbit[data-uid ="' + highlight._id + '"]');
-
-			h.onclick = () => hoverMenu(highlight);
+			r.commonAncestorContainer.parentElement.innerHTML = r.commonAncestorContainer.parentElement.innerHTML.replace(oldText, "<kbit  data-uid= " + uid + ">" + oldText + "</kbit>");
+			
+			setupKbitBehaviour(highlight);
 			return;
 		}
 
@@ -123,29 +144,8 @@ function styleRange(r, highlight){
 				let oldText = textNodes[i].nodeValue;
 
 				let kbit = document.createElement('kbit');
-				kbit.style.backgroundColor = color;
-				kbit.style.display = "inline";
-
-				kbit.onmouseover = () => {
-					kbit.style.cursor = "pointer";
-					let kbits = document.querySelectorAll('kbit[data-uid ="' + highlight._id + '"]');
-					for (let e of kbits)
-					{
-						console.log(e.style.backgroundColor);
-						e.style.backgroundColor = getHoverColor(e.style.backgroundColor, -40);
-
-					}
-
-				}
-
-			  kbit.onmouseout = () => {
-					let kbits = document.querySelectorAll('kbit[data-uid ="' + highlight._id + '"]');
-					for (let e of kbits)
-						e.style.backgroundColor = getHoverColor(e.style.backgroundColor, 40);
-				}
-				
 				kbit.dataset.uid = uid;
-				kbit.onclick = () => hoverMenu(highlight);
+
 
 				if(i == textNodes.length - 1)
 				{
@@ -166,9 +166,8 @@ function styleRange(r, highlight){
 					pe.insertBefore(remainingText, kbit.nextSibling);
 				if(i == 0)
 					pe.insertBefore(remainingText, kbit);
-
-				console.log(`${i}/${textNodes.length}`)
 		}
+		setupKbitBehaviour(highlight);
 	  console.log("range Styling completed");
 }
 
@@ -196,6 +195,6 @@ function getXPathQueryText(context){
 		portion += c;
 	}
 	query = query.slice(0, 7) + query.slice(8, query.length);
-	query += ")"
-	return query
+	query += ")";
+	return query;
 }
