@@ -4,71 +4,42 @@
   <head>
     <meta charset="utf-8">
     <title>javascript test</title>
-    <style>
-	body{
-		background-color: black;
-	}
-
-	.selected {
-		border: 2px solid grey;
-	}
-	#color-selector > div{
-		border-radius : 10px;	
-		height: 25px;
-		width: 25px;
-		display: inline-block;
-		margin: 0 auto;
-		align: center;
-	}
-	#notes-container {
-		width :140px;
-		height: 100px;
-		display: none;
-	}
-	#note{
-		width: 90%;
-		align: center;
-		height: 90%;
-	}
-	#color-selector{
-		margin: 0 auto;
-		height: 40px;
-		width: 100%;
-		text-align: center;
-
-	}
-	#yellow{
-		background-color:#fff600 ;
-	}
-	
-	#green{
-	
-		background-color: #01ca00;
-
-	}
-	#red{
-		background-color: #e00200;
-
-	}
-	#blue{
-		background-color:#00ffff ;
-	}
-	
-
-
-    </style>
+   	<link rel="stylesheet" type="text/css" href="menu.css"/> 
   </head>
   <body>
-	  <div id="color-selector">
-		<div id="yellow" data-clr="#fff600"></div>
-		<div id="red" data-clr="#e00200"></div>
-		<div id="green" data-clr="#01ca00"></div>
-		<div id="blue" data-clr="#00ffff"></div>
-	  </div>
-	  <div id = "notes-container">
-		  <textarea id="note">
-		  </textarea>
-	  </div>
+		<div class="topic-view hidden">
+			<div id="topic-selector topic-view hidden">
+				<button class="exit-topic-view topic-view hidden"> back </button>
+				<button class="topic topic-view hidden"> name </button>
+				<button class="topic topic-view hidden"> name </button>
+				<button class="topic topic-view hidden"> name </button>
+				<button class="topic topic-view hidden"> name </button>
+				<button class="topic topic-view hidden"> name </button>
+				<button class="topic topic-view hidden"> name </button>
+				<button class="topic topic-view hidden"> name </button>
+				<button class="topic topic-view hidden"> name </button>
+				<button class="topic topic-view hidden"> name </button>
+				<button class="topic topic-view hidden"> name </button>
+				<button class="topic topic-view hidden"> name </button>
+			</div>
+		</div>
+		
 
+		<div class="default-view">
+				<div id="color-selector" class="default-view">
+						<div class="default-view" id="yellow" data-clr="#fff600"></div>
+
+						<div  class="default-view" id="red" data-clr="#e00200"></div>
+						<div   class="default-view" id="green" data-clr="#01ca00"></div>
+						<div  class="default-view" id="blue" data-clr="#00ffff"></div>
+				</div>
+				
+				<div id = "notes-container" class="default-view">
+					<textarea id="note" class="default-view">
+					</textarea>
+				</div>
+				<button class="selectTopic default-view">Topic</button>
+       
+		</div>
   </body>
 </html>

@@ -1,0 +1,86 @@
+ body{
+     background-color: black;
+		 display: flex;
+		 flex-direction: column;
+   }
+ 
+   .selected {
+     border: 2px solid grey;
+   }
+   #color-selector > div{
+     border-radius : 10px;
+     height: 25px;
+     width: 25px;
+     display: inline-block;
+     margin: 0 auto;
+     align: center;
+   }
+   #notes-container {
+     width :140px;
+     height: 100px;
+     display: none;
+   }
+   #note{
+     width: 90%;
+     align: center;
+     height: 90%;
+   }
+   #color-selector{
+     margin: 0 auto;
+     height: 40px;
+     width: 100%;
+     text-align: center;
+ 
+   }
+   #yellow{
+     background-color:#fff600 ;
+   }
+ 
+   #green{
+ 
+     background-color: #01ca00;
+ 
+   }
+   #red{
+     background-color: #e00200;
+ 
+   }
+   #blue{
+     background-color:#00ffff ;
+   }
+
+
+.hidden {
+				display : none;
+}
+.topic-view  
+{
+				width: 100%;
+}
+#selectTopic {
+   background-color: #4CAF50;
+   color: white;
+   padding: 16px;
+   font-size: 16px;
+   border: none;
+	 width : 100%;
+ }
+
+
+ #topic-selector {
+   background-color: #f1f1f1;
+	 width :100%;
+	 min-height: 20px;
+   z-index: 1;
+ }
+
+.topic {
+   background-color: #f1f1f1;
+   width: 100%;
+
+ }
+
+ .topic:hover {background-color: #ddd;}
+ #selectTopic:hover {background-color: #3e8e41;}
+
+

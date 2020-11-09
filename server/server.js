@@ -25,14 +25,14 @@ class MongoDB {
 
 	async insert(doc){
 		if(this.db){
-				await this.db.collection("highlights").insertOne(doc)
+				this.db.collection("highlights").insertOne(doc)
 																							.catch(err => console.error(err, `could not insert ${doc._id}`));
 		}
 	}
 
 	async update(highlight){
 		if (this.db){
-			await this.db.collection("highlights").replaceOne({"_id" :  highlight._id}, highlight)
+			this.db.collection("highlights").replaceOne({"_id" :  highlight._id}, highlight)
 																						.catch(err => console.log(err, `update failed for ${highlight._id}`));
 		}
 		else
@@ -40,7 +40,7 @@ class MongoDB {
 	}
 	async remove(uid){
 		if(this.db){
-			await this.db.collection("highlights").remove({"_id" : uid});
+			this.db.collection("highlights").remove({"_id" : uid});
 		}
 		else
 			console.error("Database instance not found");

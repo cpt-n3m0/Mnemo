@@ -1,9 +1,32 @@
+
 function setupHoverMenuContent(activeHighlight, hovmen){
 	let idoc = hovmen.contentDocument;
+	
+	let selectTopicBtn = idoc.querySelector(".selectTopic");
+	selectTopicBtn.onclick = () =>{
+			hovmen.style.height = "150px";
+			toggleVisibility(".topic-view", true, idoc)	;
+			toggleVisibility(".default-view", false, idoc)	;
+			
+	}
+	
+	let back = idoc.querySelector(".exit-topic-view");
+	back.onclick = () => {
+			hovmen.style.height = "90px";
+			toggleVisibility(".topic-view", false, idoc)	;
+			toggleVisibility(".default-view", true, idoc)	;
+	};
+
 	let colorOptions = idoc.getElementById("color-selector");
 	for(let e of colorOptions.childNodes){
 		if(e.nodeType == 3)
 			continue;
+
+		e.style.backgroundColor = e.dataset.clr;
+		e.onmouseover = () => e.style.backgroundColor = getHoverColor(e.style.backgroundColor, -40);
+		e.onmouseout = () => e.style.backgroundColor = getHoverColor(e.style.backgroundColor, 40);
+		
+
 		if(activeHighlight && e.dataset.clr == activeHighlight.color)
 			e.className = "selected";
 		e.onclick = () => {
@@ -39,7 +62,7 @@ function setupHoverMenuContent(activeHighlight, hovmen){
 	}
 	if(activeHighlight){
 		let notesContainer = idoc.getElementById("notes-container");
-		notesContainer.style.display = "block";
+		notesContainer.style.display = "flex";
 		let note = idoc.getElementById("note");
 		note.value = activeHighlight.note;
 		note.onchange = () => {
@@ -49,44 +72,54 @@ function setupHoverMenuContent(activeHighlight, hovmen){
 	}
 }
 
+
 function hoverMenu(activeHighlight=null){
-	const hovmen = document.createElement('iframe');
-	hovmen.id = "kbytes-hovering-menu";
-	hovmen.scrolling = "no";
-	hovmen.src = browser.runtime.getURL("resources/menu.html");
-	let height = activeHighlight?"150":"50"
-	hovmen.style = "height: " + height + "px !important; width: 150px !important; top:" + mouseY + "px; left:" + mouseX+ "px; display: block;";
 	injectCSS(`
-		 #kbytes-hovering-menu {
-		    display: none;
-		    z-index: 2147483645 !important;
-		    animation-delay: 0s !important;
-		    animation-direction: normal !important;
-		    animation-duration: 0.18s !important;
-		    animation-fill-mode: forwards !important;
-		    animation-iteration-count: 1 !important;
-		    animation-name: pop-upwards !important;
-		    animation-timing-function: linear !important;
-		    transition-delay: 0s, 0s !important;
-		    transition-duration: 0.075s, 0.075s !important;
-		    transition-property: top, left !important;
-		    transition-timing-function: ease-out, ease-out !important;
+		 body, html{
+			display: flex;
+			flex-direction: column;
+			height: 100%
+		 }
+		 #mykbits-hoverMenuContainer {
+		 		display: flex;
+				flex-direction:column;
+		    z-index: 2456123459 !important;
 		    position: fixed !important;
 		    opacity: 1 !important;
-		    width: 178px !important;
-		    height: 77px !important;
 		    user-select: none !important;
 		    margin: 0px !important;
 		    background: none !important;
+				width: 150px;
+		}
+		#mykbits-hoverMenu{
+			display: flex;
+			flex-direction : column;
+			height: 100%;
+			flex: 1 1 auto;
 		}
 	`);
+	const hovmen = document.createElement('iframe');
+	hovmen.id = "mykbits-hoverMenu"
+	hovmen.style.height = "90px";
+	hovmen.src = browser.runtime.getURL("resources/menu.html");
+	hovmen.onload = ()=> {
+			console.log("height adjustment done");
+			hovmen.style.height = hovmen.contentWindow.document.body.offsetHeight + "px";
+	}
+//	hovmen.style = "height:  100% !important; width: 100% !important; ";
+
+
+	let iframeContainer = document.createElement("div");
+	iframeContainer.id = "mykbits-hoverMenuContainer";
+	iframeContainer.style = "top:" + mouseY + "px; left:" + mouseX+ "px; "
+	iframeContainer.appendChild(hovmen);
 
 	hovmen.onload = () => setupHoverMenuContent(activeHighlight, hovmen);
-	document.body.append(hovmen);
+	document.body.append(iframeContainer);
 }
 var isHoverMenuOpen = false;
 function closeHoverMenu(e=null){
-	const menuframe = document.getElementById("kbytes-hovering-menu");
+	const menuframe = document.getElementById("mykbits-hoverMenuContainer");
 	if (menuframe != null){
 		menuframe.parentNode.removeChild(menuframe);
 	}

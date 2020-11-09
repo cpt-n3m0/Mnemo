@@ -1,15 +1,29 @@
+window.onload = () => browser.tabs.query({active: true, lastFocusedWindow:true}).then(tabs => {
+       console.log(tabs);
+       updateContent(tabs[0].Id, null,tabs[0] );
+     });
+
+var scrollIntoViewRequest = null;
 function setupContainerBehavior(newEntry, tab, highlight){
 	let deleteBtn = newEntry.querySelector("img.delete-highlight" );
 	deleteBtn.onclick = () => {
 		removeHighlight(highlight);
-		updateContent(tab, null, null);
+		updateContent(tab.tabId, null, tab);
 	}
 	let goToLinkBtn =newEntry.querySelector("img.gotolink" ); 
 	goToLinkBtn.onclick = () => {
+		console.log(highlight.url)
+		console.log(tab.url)
+		if(tab.url == highlight.url)
+		{
+				browser.tabs.executeScript( {
+						code : `document.querySelector("kbit[data-uid='${highlight._id}']").scrollIntoView();`
+			});
+			return;
+		}	
 		console.log(highlight.url);
 		console.log(tab);
-		browser.tabs.update(tab.tabId, {url: highlight.url});
-		updateContent(tab.tabId, null, null);
+		browser.tabs.update(tab.tabId, {url: highlight.url}).then( t => scrollIntoViewRequest = highlight);
 	}
 
 	let options = newEntry.querySelector(".entry-options");
@@ -66,6 +80,18 @@ function buildHLDisplayElement(highlight, tab){
 function updateContent(tabId, changeInfo, tab){
 	if(changeInfo && changeInfo.status != "complete")
 		return;
+	console.log(tab);
+	if(scrollIntoViewRequest != null)
+	{
+			browser.tabs.executeScript( {
+						code : `
+								setTimeout(() =>{
+											console.log("doing it");
+											document.querySelector("kbit[data-uid='${scrollIntoViewRequest._id}']").scrollIntoView();
+								} , 500);`
+			});
+			scrollIntoViewRequest = null;
+	}
 	browser.runtime.sendMessage({request: "viewer-getHighlights"}).then(response => {
 		let hlList = document.getElementById("entries-container");
 		while(hlList.firstChild){
@@ -73,9 +99,7 @@ function updateContent(tabId, changeInfo, tab){
 		}
 		console.log(response);
 		for(let hl of response.highlights){
-			
-
-			hlList.appendChild(buildHLDisplayElement(hl, tabId));
+			hlList.appendChild(buildHLDisplayElement(hl, tab));
 		}
 
 
@@ -87,7 +111,12 @@ browser.tabs.onUpdated.addListener(updateContent);
 
 browser.runtime.onMessage.addListener(function(request, sender){
 	if(request.request == "updateViewerContent")
-		updateContent(null, null, null);
-
+	{
+			console.log("got viewer update request");
+		browser.tabs.query({active: true, lastFocusedWindow:true}).then(tabs => {
+			console.log(tabs);
+			updateContent(tabs[0].Id, null,tabs[0] );
+		});
+	}
 });
 

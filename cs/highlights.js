@@ -24,7 +24,9 @@ function loadHighlights(){
 			}
 		}
 
-	}).catch(error =>{console.log("ERROR while loading highlights : " + error)});
+	}).then(() => {
+			browser.runtime.sendMessage({request: "updateViewerContent"});
+		}).catch(error =>{console.log("ERROR while loading highlights : " + error)});
 
 }
 

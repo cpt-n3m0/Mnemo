@@ -198,3 +198,13 @@ function getXPathQueryText(context){
 	query += ")";
 	return query;
 }
+function toggleVisibility(cls, display, idoc)
+{
+	 let clsElements= idoc.querySelectorAll(cls);
+	 for(let e of clsElements){
+				if(display)
+			 			e.classList.remove("hidden");
+		 		else
+			 			e.classList.add("hidden");
+	 }
+}
