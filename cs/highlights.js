@@ -30,7 +30,7 @@ function loadHighlights(){
 
 }
 
-function addHighlight(clr)
+function addHighlight(clr, tpc="Sample Topic")
 {
 		var highlights = [];
 
@@ -53,6 +53,7 @@ function addHighlight(clr)
 				color : clr,
 				_id : id,
 				url : r.startContainer.baseURI,
+				topic: tpc,
 				tags: [],
 				timestamp: new Date()
 			};

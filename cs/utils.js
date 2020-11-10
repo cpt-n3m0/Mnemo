@@ -198,13 +198,14 @@ function getXPathQueryText(context){
 	query += ")";
 	return query;
 }
-function toggleVisibility(cls, display, idoc)
+
+function setViewVisibility(cls, display, idoc)
 {
 	 let clsElements= idoc.querySelectorAll(cls);
 	 for(let e of clsElements){
 				if(display)
-			 			e.classList.remove("hidden");
+			 			e.classList.remove("hidden-view");
 		 		else
-			 			e.classList.add("hidden");
+			 			e.classList.add("hidden-view");
 	 }
 }

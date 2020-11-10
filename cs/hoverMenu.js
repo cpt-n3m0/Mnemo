@@ -1,21 +1,49 @@
+var IFRAME_HIGHLIGHTED_HEIGHT = "185px";
+var IFRAME_SELECTED_HEIGHT = "80px";
 
 function setupHoverMenuContent(activeHighlight, hovmen){
 	let idoc = hovmen.contentDocument;
+	let selectedTopic = "";
 	
 	let selectTopicBtn = idoc.querySelector(".selectTopic");
 	selectTopicBtn.onclick = () =>{
-			hovmen.style.height = "150px";
-			toggleVisibility(".topic-view", true, idoc)	;
-			toggleVisibility(".default-view", false, idoc)	;
+			hovmen.style.height = IFRAME_HIGHLIGHTED_HEIGHT;
+			setViewVisibility(".topic-view", true, idoc)	;
+			setViewVisibility(".default-view", false, idoc)	;
 			
 	}
+	if(activeHighlight && activeHighlight.topic != "")
+		selectTopicBtn.textContent = activeHighlight.topic;
+	else
+		selectTopicBtn.textContent = "Sample Topic";
 	
-	let back = idoc.querySelector(".exit-topic-view");
-	back.onclick = () => {
-			hovmen.style.height = "90px";
-			toggleVisibility(".topic-view", false, idoc)	;
-			toggleVisibility(".default-view", true, idoc)	;
-	};
+	let topicSelection = idoc.querySelectorAll(".topic-selector > button");
+	for(let button of topicSelection)
+	{
+		button.onclick = () => {
+				hovmen.style.height = activeHighlight?IFRAME_HIGHLIGHTED_HEIGHT:IFRAME_SELECTED_HEIGHT;
+				setViewVisibility(".topic-view", false, idoc)	;
+				setViewVisibility(".default-view", true, idoc)	;
+				
+
+				if(!button.classList.contains("exit-topic-view"))
+				{
+					  selectedTopic = button.textContent;
+
+					//	let topicBtn = idoc.querySelector(".selectTopic");
+						selectTopicBtn.textContent = selectedTopic;
+				}
+				if(activeHighlight)
+				{
+					activeHighlight.topic = selectedTopic;
+					updateHighlight(activeHighlight);
+					console.log(activeHighlight);
+				}
+			  	
+			};
+
+	}
+	
 
 	let colorOptions = idoc.getElementById("color-selector");
 	for(let e of colorOptions.childNodes){
@@ -32,7 +60,7 @@ function setupHoverMenuContent(activeHighlight, hovmen){
 		e.onclick = () => {
 			if(activeHighlight == null)
 			{
-				addHighlight(e.dataset.clr);
+				addHighlight(e.dataset.clr, selectedTopic);
 				e.className = "selected";
 				closeHoverMenu();
 				return;
@@ -42,7 +70,6 @@ function setupHoverMenuContent(activeHighlight, hovmen){
 			{
 				console.log(activeHighlight);
 				removeHighlight(activeHighlight);
-				e.className = "selected";
 				closeHoverMenu();
 			}
 			else
@@ -62,8 +89,10 @@ function setupHoverMenuContent(activeHighlight, hovmen){
 	}
 	if(activeHighlight){
 		let notesContainer = idoc.getElementById("notes-container");
-		notesContainer.style.display = "flex";
 		let note = idoc.getElementById("note");
+		notesContainer.classList.remove("hidden");
+		note.classList.remove("hidden");
+
 		note.value = activeHighlight.note;
 		note.onchange = () => {
 			activeHighlight.note = note.value;
@@ -75,11 +104,7 @@ function setupHoverMenuContent(activeHighlight, hovmen){
 
 function hoverMenu(activeHighlight=null){
 	injectCSS(`
-		 body, html{
-			display: flex;
-			flex-direction: column;
-			height: 100%
-		 }
+		 
 		 #mykbits-hoverMenuContainer {
 		 		display: flex;
 				flex-direction:column;
@@ -89,26 +114,22 @@ function hoverMenu(activeHighlight=null){
 		    user-select: none !important;
 		    margin: 0px !important;
 		    background: none !important;
-				width: 150px;
+				width: 160px;
 		}
 		#mykbits-hoverMenu{
-			display: flex;
-			flex-direction : column;
-			height: 100%;
-			flex: 1 1 auto;
+			width: 100%;
+			border-style: solid;
+			border-width: 2px;
+			border-color: grey;
+			border-radius: 5px;
+		
 		}
 	`);
 	const hovmen = document.createElement('iframe');
-	hovmen.id = "mykbits-hoverMenu"
-	hovmen.style.height = "90px";
+	hovmen.id = "mykbits-hoverMenu";
+	hovmen.style.height = (activeHighlight)?IFRAME_HIGHLIGHTED_HEIGHT:IFRAME_SELECTED_HEIGHT;
 	hovmen.src = browser.runtime.getURL("resources/menu.html");
-	hovmen.onload = ()=> {
-			console.log("height adjustment done");
-			hovmen.style.height = hovmen.contentWindow.document.body.offsetHeight + "px";
-	}
-//	hovmen.style = "height:  100% !important; width: 100% !important; ";
-
-
+	
 	let iframeContainer = document.createElement("div");
 	iframeContainer.id = "mykbits-hoverMenuContainer";
 	iframeContainer.style = "top:" + mouseY + "px; left:" + mouseX+ "px; "
