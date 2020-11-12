@@ -42,6 +42,14 @@ async function updateHighlight(highlight){
 		});	
 }
 
+async function getTopics(){
+	let topicsResponse = await	fetch(`${dburl}/getTopics`)
+		.catch((error) => {
+			console.error('Error:', error);
+		});
+	return topicsResponse;
+}
+
 async function getHighlights(url){
 	var pageHighlightsResponse = await	fetch(`${dburl}/getHighlights/${new URLSearchParams({"url" :url})}/`)
 		.catch((error) => {
@@ -116,6 +124,11 @@ browser.runtime.onMessage.addListener( function(request, sender){
 			/*}*/
 			//console.log(highlight_cache);
 			/*return Promise.resolve({highlights: highlight_cache });*/
+		case "viewer-getTopics":
+			console.log("received Topics request");
+			return getTopics().then(data => data.json()).then(data =>{ 
+					console.log(data);
+					return {topics: data}});
 	}
 });
 console.log("Loaded");

@@ -55,7 +55,16 @@ class MongoDB {
 			console.error("Database instance not found");
 		return result;
 	}
-
+	async getTopics(){
+		let result;
+		if(this.db){
+			 result = await this.db.collection("highlights").distinct("topic");
+			 console.log(result)
+		}
+		else
+			console.error("Database instance not found");
+		return result;
+	}
 	async getAll(){
 
 		let results;
@@ -66,9 +75,7 @@ class MongoDB {
 			console.error("Database instance not found");
 		return results;
 	}
-	async getTopics(){
-		
-	}
+	
 }
 
 var db = new MongoDB();
@@ -78,17 +85,17 @@ app.use(bodyParser.json());
 
 app.put("/addHighlight", function(req, res){
 	console.log(`Adding highlight ${req.body._id}`)
-	db.insert(req.body);
-})
+	db.insert(req.body);db.collection("highlights").distinct("topic")
+});
 app.put("/updateHighlight", function(req, res){
 	console.log(`update highlight ${req.body._id}`)
 	db.update(req.body);
 
-})
+});
 app.delete("/removeHighlight/:id", function(req, res){
 	console.log(	`removing highlight ${req.params.id}`)
 	db.remove(req.params.id);
-})
+});
 app.get("/getHighlights/:url/", function(req, res){
 	console.log(`Getting highlights for  ${req.params.url}`);
 	try {
@@ -103,12 +110,19 @@ app.get("/getHighlights/:url/", function(req, res){
 	catch(err){
 		console.error(err);
 	}
-})
+});
 app.get("/getAllHighlights", function(req, res){
 	console.log(`All highlights request`);
 	db.getAll().then(results =>res.send(results))
 						 .catch(err => console.error(err, "Unable to fetch highlights"));
-})
+});
+app.get("/getTopics", function(req, res){
+	console.log(`Topics request`);
+	db.getTopics().then(results =>{
+			res.send(results);
+	})
+						 .catch(err => console.error(err, "Unable to fetch Topics"));
+});
 var server = app.listen(8082, function(){
 
 	console.log("request received");

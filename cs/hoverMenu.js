@@ -61,7 +61,7 @@ function setupHoverMenuContent(activeHighlight, hovmen){
 			if(activeHighlight == null)
 			{
 				addHighlight(e.dataset.clr, selectedTopic);
-				e.className = "selected";
+				e.classList.add( "selected");
 				closeHoverMenu();
 				return;
 			}
@@ -114,7 +114,7 @@ function hoverMenu(activeHighlight=null){
 		    user-select: none !important;
 		    margin: 0px !important;
 		    background: none !important;
-				width: 160px;
+				width: 140px;
 		}
 		#mykbits-hoverMenu{
 			width: 100%;

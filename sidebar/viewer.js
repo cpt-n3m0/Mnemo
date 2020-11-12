@@ -57,8 +57,7 @@ function buildHLDisplayElement(highlight, tab){
 	newEntry.className = "entry";
 
 	newEntry.innerHTML = `
-		 <div class="entry-color" data-uid="${highlight._id}" style="background-color: ${highlight.color};"></div>
-                                <div class="entry-content"><p>${highlight.text} </p>
+				<div class="entry-content" id="${highlight._id}" style="border-left: solid 10px ${highlight.color};"><p>${highlight.text} </p>
 					<div class="entry-note-container" style="display: ${highlight.note != ""?"block":"none"}">		
 						<img src='../icons/ellipses.svg' title='showNote'>
 					</div>
@@ -77,7 +76,7 @@ function buildHLDisplayElement(highlight, tab){
 	return newEntry;
 	
 }
-function updateContent(tabId, changeInfo, tab){
+function updateContent(tabId, changeInfo, tab, topic= ""){
 	if(changeInfo && changeInfo.status != "complete")
 		return;
 	console.log(tab);
@@ -104,6 +103,18 @@ function updateContent(tabId, changeInfo, tab){
 
 
 	}).catch(e => console.log(e));
+
+	browser.runtime.sendMessage({request: "viewer-getTopics"}).then(response => {
+     let topicContainer = document.querySelector(".dropdown-content");
+		 topicContainer.textContent = "";
+     for(let t of response.topics)
+     {
+       let topicElement = document.createElement("a");
+       topicElement.textContent = t;
+       topicContainer.appendChild(topicElement);
+     }
+
+   });
 }
 
 browser.tabs.onActivated.addListener(updateContent);

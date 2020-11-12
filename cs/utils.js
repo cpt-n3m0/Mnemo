@@ -9,7 +9,7 @@ function clearSelection(selector){
 	for (let e of selector){
 		if(e.nodeType == 3)
 			continue;
-		e.className = "";
+		e.classList.remove("selected") ;
 	}
 }
 
