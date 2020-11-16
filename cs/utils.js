@@ -71,6 +71,7 @@ function escapeSpecialCharacters(text, xquery = false){
 		
 
 }
+
 function getHoverColor(color, n){
 	if(color.startsWith("rgb")){
 		let vals = color.slice(4, -1).split(",");

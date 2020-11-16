@@ -3,7 +3,7 @@ var IFRAME_SELECTED_HEIGHT = "80px";
 
 function setupHoverMenuContent(activeHighlight, hovmen){
 	let idoc = hovmen.contentDocument;
-	let selectedTopic = "";
+	let selectedTopic = {name: "", id: ""};
 	
 	let selectTopicBtn = idoc.querySelector(".selectTopic");
 	selectTopicBtn.onclick = () =>{
@@ -13,36 +13,48 @@ function setupHoverMenuContent(activeHighlight, hovmen){
 			
 	}
 	if(activeHighlight && activeHighlight.topic != "")
-		selectTopicBtn.textContent = activeHighlight.topic;
+		selectTopicBtn.textContent = activeHighlight.topicName;
 	else
-		selectTopicBtn.textContent = "Sample Topic";
+		browser.storage.local.get("lastSelectedTopic").then(result=> {
+			if(result && result.lastSelectedTopic != "")
+				selectTopicBtn.textContent = result.lastSelectedTopic;
+				selectedTopic = {name: result.lastSelectedTopic, id: result.topicID};
+		});
 	
-	let topicSelection = idoc.querySelectorAll(".topic-selector > button");
-	for(let button of topicSelection)
-	{
-		button.onclick = () => {
-				hovmen.style.height = activeHighlight?IFRAME_HIGHLIGHTED_HEIGHT:IFRAME_SELECTED_HEIGHT;
-				setViewVisibility(".topic-view", false, idoc)	;
-				setViewVisibility(".default-view", true, idoc)	;
-				
+	let topicContainer = idoc.querySelector(".topic-selector");
+	browser.runtime.sendMessage({request: "getTopics"}).then(response => {
+		  console.log(response);
+			for(let t of response.topics)
+			{
+						let button = document.createElement("button");
+						button.classList.add("topic", "topic-view", "hidden-view");
+						button.id = t._id;
+						button.textContent = t.name;
+						button.onclick = () => {
+								hovmen.style.height = activeHighlight?IFRAME_HIGHLIGHTED_HEIGHT:IFRAME_SELECTED_HEIGHT;
+								setViewVisibility(".topic-view", false, idoc)	;
+								setViewVisibility(".default-view", true, idoc)	;
+								
 
-				if(!button.classList.contains("exit-topic-view"))
-				{
-					  selectedTopic = button.textContent;
+								if(!button.classList.contains("exit-topic-view"))
+								{
+										selectedTopic.name = button.textContent;
+										selectedTopic.id = button.id;
+										selectTopicBtn.textContent = selectedTopic.name;
+								}
+								if(activeHighlight)
+								{
+									activeHighlight.topicID = selectedTopic._id;
+									activeHighlight.topicName = selectedTopic.name;
+									updateHighlight(activeHighlight);
+									console.log(activeHighlight);
+								}
+							
+					};	
+					topicContainer.appendChild(button);
 
-					//	let topicBtn = idoc.querySelector(".selectTopic");
-						selectTopicBtn.textContent = selectedTopic;
-				}
-				if(activeHighlight)
-				{
-					activeHighlight.topic = selectedTopic;
-					updateHighlight(activeHighlight);
-					console.log(activeHighlight);
-				}
-			  	
-			};
-
-	}
+			}
+	});
 	
 
 	let colorOptions = idoc.getElementById("color-selector");
@@ -60,7 +72,7 @@ function setupHoverMenuContent(activeHighlight, hovmen){
 		e.onclick = () => {
 			if(activeHighlight == null)
 			{
-				addHighlight(e.dataset.clr, selectedTopic);
+				addHighlight(e.dataset.clr, selectedTopic.id, selectedTopic.name);
 				e.classList.add( "selected");
 				closeHoverMenu();
 				return;
@@ -80,8 +92,7 @@ function setupHoverMenuContent(activeHighlight, hovmen){
 				for (let ae of activeElements){
 					ae.style.background = e.dataset.clr;
 				}
-
-				e.className = "selected";
+				e.classList.add( "selected");
 				updateHighlight(activeHighlight);
 
 			}

@@ -42,6 +42,20 @@ async function updateHighlight(highlight){
 		});	
 }
 
+async function addTopic(topic){
+		await	fetch(`${dburl}/addTopic`, {
+			 method: 'PUT', 
+    mode: 'cors', 
+    cache: 'no-cache',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(topic) // body data type must match "Content-Type" header
+		})
+		.catch((error) => {
+			console.error('Error:', error);
+		});	
+}
 async function getTopics(){
 	let topicsResponse = await	fetch(`${dburl}/getTopics`)
 		.catch((error) => {
@@ -50,12 +64,19 @@ async function getTopics(){
 	return topicsResponse;
 }
 
-async function getHighlights(url){
+async function getUrlHighlights(url){
 	var pageHighlightsResponse = await	fetch(`${dburl}/getHighlights/${new URLSearchParams({"url" :url})}/`)
 		.catch((error) => {
 			console.error('Error:', error);
 		});
 	return pageHighlightsResponse;
+}
+async function getTopicHighlights(topicName){
+	var HighlightsResponse = await	fetch(`${dburl}/getTopicHighlights/${topicName}`)
+		.catch((error) => {
+			console.error('Error:', error);
+		});
+	return HighlightsResponse;
 }
 async function getAllHighlights(){
 	var HighlightsResponse = await	fetch(`${dburl}/getAllHighlights`, {
@@ -89,7 +110,7 @@ browser.runtime.onMessage.addListener( function(request, sender){
 	console.log(request);
 	switch(request.request){
 		case "loadHighlights":
-			 return getHighlights(request.url).then(response => response.json())
+			 return getUrlHighlights(request.url).then(response => response.json())
 				.then(data => { 
 					console.log("data loaded : ");
 					console.log(data);
@@ -124,11 +145,18 @@ browser.runtime.onMessage.addListener( function(request, sender){
 			/*}*/
 			//console.log(highlight_cache);
 			/*return Promise.resolve({highlights: highlight_cache });*/
-		case "viewer-getTopics":
+		case "getTopicHighlights":
+			 console.log("received Topic highlights request");
+			return getTopicHighlights(request.topicName). then(data => data.json()).then(data => {
+				return {highlights : data}
+			})
+		case "getTopics":
 			console.log("received Topics request");
 			return getTopics().then(data => data.json()).then(data =>{ 
-					console.log(data);
 					return {topics: data}});
+		case "addTopic":
+			console.log(`received Add topic request : ${request.newTopic.name}`);
+			return addTopic(request.newTopic);
 	}
 });
 console.log("Loaded");

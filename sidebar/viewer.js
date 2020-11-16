@@ -1,3 +1,4 @@
+
 window.onload = () => browser.tabs.query({active: true, lastFocusedWindow:true}).then(tabs => {
        console.log(tabs);
        updateContent(tabs[0].Id, null,tabs[0] );
@@ -45,17 +46,49 @@ function setupContainerBehavior(newEntry, tab, highlight){
 
 	let copyBtn = newEntry.querySelector(".copy");
 	copyBtn.onclick =  function copy(){
-		navigator.clipboard.writeText(highlight.text)
-
-		  console.log(`copied ${highlight.text}`);
-
+			navigator.clipboard.writeText(highlight.text)
 	}
 }
-function buildHLDisplayElement(highlight, tab){
 
+function buildTopicElement(topicName="") {
+		let topicElement = document.createElement("a");
+		 topicElement.classList.add("dropdown-item");
+		 topicElement.textContent = topicName;
+		 topicElement.onclick = () => {
+			 browser.storage.local.set({"lastSelectedTopic": topicElement.textContent});
+			 console.log(`selecting ${browser.storage.local.get('lastSelectedTopic')}`);
+				browser.tabs.query({active: true, lastFocusedWindow:true}).then(tabs => {
+					 updateContent(tabs[0].id, null, tabs[0]);
+				});
+		 };
+	return topicElement;
+}
+
+function setupAddTopicBehaviour(addTopBtn){
+	addTopBtn.onclick = () => {
+		let newTopicElement = buildTopicElement();
+		newTopicElement.contentEditable = true;
+		newTopicElement.onkeydown = (e) => {
+				if(e.code == "Enter")
+				{
+						newTopicElement.contentEditable = false;
+						let nt= {
+							"name" : newTopicElement.textContent,
+							"highlights": []
+						};
+					browser.runtime.sendMessage({request: "addTopic", newTopic : nt});
+
+				}
+				
+		}
+		addTopBtn.parentElement.insertBefore(newTopicElement, addTopBtn);
+		newTopicElement.focus();
+	}
+}
+
+function buildHLDisplayElement(highlight, tab){
 	let newEntry = document.createElement("div");
 	newEntry.className = "entry";
-
 	newEntry.innerHTML = `
 				<div class="entry-content" id="${highlight._id}" style="border-left: solid 10px ${highlight.color};"><p>${highlight.text} </p>
 					<div class="entry-note-container" style="display: ${highlight.note != ""?"block":"none"}">		
@@ -72,62 +105,78 @@ function buildHLDisplayElement(highlight, tab){
 	`;
 
 	setupContainerBehavior(newEntry, tab, highlight);
-	
 	return newEntry;
-	
 }
-function updateContent(tabId, changeInfo, tab, topic= ""){
+
+function updateContent(tabId, changeInfo, tab, topic=null){
 	if(changeInfo && changeInfo.status != "complete")
 		return;
-	console.log(tab);
 	if(scrollIntoViewRequest != null)
 	{
 			browser.tabs.executeScript( {
 						code : `
 								setTimeout(() =>{
-											console.log("doing it");
 											document.querySelector("kbit[data-uid='${scrollIntoViewRequest._id}']").scrollIntoView();
 								} , 500);`
 			});
 			scrollIntoViewRequest = null;
 	}
-	browser.runtime.sendMessage({request: "viewer-getHighlights"}).then(response => {
-		let hlList = document.getElementById("entries-container");
-		while(hlList.firstChild){
-			hlList.removeChild(hlList.firstChild);
-		}
-		console.log(response);
-		for(let hl of response.highlights){
-			hlList.appendChild(buildHLDisplayElement(hl, tab));
-		}
+	
 
-
-	}).catch(e => console.log(e));
-
-	browser.runtime.sendMessage({request: "viewer-getTopics"}).then(response => {
+	browser.runtime.sendMessage({request: "getTopics"}).then(response => {
      let topicContainer = document.querySelector(".dropdown-content");
+		 
 		 topicContainer.textContent = "";
      for(let t of response.topics)
      {
-       let topicElement = document.createElement("a");
-       topicElement.textContent = t;
+			 let topicElement = buildTopicElement(t.name);
+       
        topicContainer.appendChild(topicElement);
      }
 
-   });
+		let addTopicBtn = document.createElement("a");
+		addTopicBtn.textContent = "Add Topic";
+		addTopicBtn.classList.add("option-add-topic");
+		setupAddTopicBehaviour(addTopicBtn);
+		topicContainer.appendChild(addTopicBtn);
+
+		browser.storage.local.get("lastSelectedTopic").then(result => {
+			if( !result.lastSelectedTopic || result.lastSelectedTopic == "")
+				 browser.storage.local.set({"lastSelectedTopic": response.topics[0].name});
+				
+		});
+	
+		
+	})
+	.then(()=> {
+			
+		browser.storage.local.get("lastSelectedTopic").then(result => {
+
+					browser.runtime.sendMessage({request: "getTopicHighlights", topicName: result.lastSelectedTopic}).then(response => {
+										let hlList = document.getElementById("entries-container");
+										while(hlList.firstChild){
+											hlList.removeChild(hlList.firstChild);
+										}
+										console.log(response);
+										for(let hl of response.highlights){
+											hlList.appendChild(buildHLDisplayElement(hl, tab));
+										}
+								}).catch(e => console.error(e));
+		}).catch(e => console.error(e));
+
+	}).catch(e => console.error(e));
+		
 }
 
 browser.tabs.onActivated.addListener(updateContent);
 browser.tabs.onUpdated.addListener(updateContent);
-
 browser.runtime.onMessage.addListener(function(request, sender){
 	if(request.request == "updateViewerContent")
 	{
 			console.log("got viewer update request");
 		browser.tabs.query({active: true, lastFocusedWindow:true}).then(tabs => {
 			console.log(tabs);
-			updateContent(tabs[0].Id, null,tabs[0] );
+			updateContent(tabs[0].id, null,tabs[0] );
 		});
 	}
 });
-
