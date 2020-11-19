@@ -1,60 +1,72 @@
 var dburl = "http://localhost:8082";
 
 async function addHighlight(highlight){
-		await	fetch(`${dburl}/addHighlight`, {
-			 method: 'PUT', 
-    mode: 'cors', 
-    cache: 'no-cache',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(highlight) // body data type must match "Content-Type" header
-		})
-		.catch((error) => {
-			console.error('Error:', error);
-		});	
+	await	fetch(`${dburl}/addHighlight`, {
+		method: 'PUT', 
+		mode: 'cors', 
+		cache: 'no-cache',
+		headers: {
+		  'Content-Type': 'application/json'
+		},
+		body: JSON.stringify(highlight) // body data type must match "Content-Type" header
+	})
+	.catch((error) => {
+		console.error('Error:', error);
+	});	
 }
 async function removeHighlight(highlight){
-		await	fetch(`${dburl}/removeHighlight/${highlight._id}`, {
-			 method: 'DELETE', 
-    mode: 'cors', 
-    cache: 'no-cache',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-		})
-		.catch((error) => {
-			console.error('Error:', error);
-		});	
+	await	fetch(`${dburl}/removeHighlight`, {
+		method: 'PUT', 
+		mode: 'cors', 
+		cache: 'no-cache',
+		headers: {
+		  'Content-Type': 'application/json'
+		},
+		body:  JSON.stringify(highlight)
+	})
+	.catch((error) => {
+		console.error('Error:', error);
+	});	
 }
 async function updateHighlight(highlight){
-		await	fetch(`${dburl}/updateHighlight`, {
-			 method: 'PUT', 
-    mode: 'cors', 
-    cache: 'no-cache',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(highlight) // body data type must match "Content-Type" header
-		})
-		.catch((error) => {
-			console.error('Error:', error);
-		});	
+	await	fetch(`${dburl}/updateHighlight`, {
+		method: 'PUT', 
+		mode: 'cors', 
+		cache: 'no-cache',
+		headers: {
+		  'Content-Type': 'application/json'
+		},
+		body: JSON.stringify(highlight) 
+	})
+	.catch((error) => {
+		console.error('Error:', error);
+	});	
 }
 
 async function addTopic(topic){
-		await	fetch(`${dburl}/addTopic`, {
-			 method: 'PUT', 
-    mode: 'cors', 
-    cache: 'no-cache',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(topic) // body data type must match "Content-Type" header
-		})
-		.catch((error) => {
-			console.error('Error:', error);
-		});	
+	await	fetch(`${dburl}/addTopic`, {
+		method: 'PUT', 
+		mode: 'cors', 
+		cache: 'no-cache',
+		headers: {
+		  'Content-Type': 'application/json'
+		},
+		body: JSON.stringify(topic) 
+	})
+	.catch((error) => {
+		console.error('Error:', error);
+	});	
+}
+
+async function removeTopic(topicName){
+	await	fetch(`${dburl}/removeTopic/${topicName}`, {
+		method: 'DELETE', 
+		mode: 'cors', 
+		cache: 'no-cache',
+	})
+	.catch((error) => {
+		console.error('Error:', error);
+	});	
 }
 async function getTopics(){
 	let topicsResponse = await	fetch(`${dburl}/getTopics`)
@@ -101,10 +113,6 @@ function onError(error){
 	console.log(error);
 }
 
-
-/*var highlight_cache = {};*/
-//var isCacheCoherent = false;
-
 browser.runtime.onMessage.addListener( function(request, sender){
 	console.log("Message received: " );
 	console.log(request);
@@ -135,16 +143,10 @@ browser.runtime.onMessage.addListener( function(request, sender){
 			break;
 		case "viewer-getHighlights":
 			console.log("viewer request received");
-			/*if (!isCacheCoherent){*/
-				
-			/*isCacheCoherent = true;*/
 			return getAllHighlights().then(response => response.json())
-																.then( data => { 
-																		return {highlights: data};
-																});
-			/*}*/
-			//console.log(highlight_cache);
-			/*return Promise.resolve({highlights: highlight_cache });*/
+									.then( data => { 
+											return {highlights: data};
+									});
 		case "getTopicHighlights":
 			 console.log("received Topic highlights request");
 			return getTopicHighlights(request.topicName). then(data => data.json()).then(data => {
@@ -155,8 +157,11 @@ browser.runtime.onMessage.addListener( function(request, sender){
 			return getTopics().then(data => data.json()).then(data =>{ 
 					return {topics: data}});
 		case "addTopic":
-			console.log(`received Add topic request : ${request.newTopic.name}`);
+			console.log(`received Add topic request : ${request.newTopic._id}`);
 			return addTopic(request.newTopic);
+		case "removeTopic": 
+			console.log(`received remove topic request: ${request.toRemove}`)
+			return	removeTopic(request.toRemove);
 	}
 });
 console.log("Loaded");

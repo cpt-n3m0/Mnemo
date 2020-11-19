@@ -7,18 +7,23 @@
 
 	<body>
 		<div class="header">
-		 <div class="dropdown">
-		  <button class="dropbtn">Topic</button>
-		  <div class="dropdown-content">
-		    <a href="#">Link 1</a>
-		    <a href="#">Link 2</a>
-		    <a href="#">Link 3</a>
-		  </div>
-		</div>
+			 <div class="dropdown">
+				<button id="topic-title" class="dropbtn">Topic</button>
+				<div id="topic-selection" class="dropdown-content">
+					<a href="#">Link 1</a>
+					<a href="#">Link 2</a>
+					<a href="#">Link 3</a>
+				</div>
+			</div>
+			<div class="topic-options">
+				<img id="topic-option-remove" class="topic-option" src="../icons/topic-delete.svg" title="Remove Topic">
+				<img id="topic-option-edit" class="topic-option"src="../icons/topic-edit.svg" title="Edit Topic">
+			</div>
+
 		<div>
 		<div>
+			
 		<div id="entries-container">
-		 
 		</div>
 		<script src= "../cs/utils.js"></script>
 		<script src= "../cs/highlights.js"></script>

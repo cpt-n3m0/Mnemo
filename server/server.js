@@ -27,13 +27,15 @@ class MongoDB {
 
 	async insertHighlight(doc){
 		if(this.db){
-				this.db.collection("highlights").insertOne(doc)
-																							.catch(err => console.error(err, `could not insert ${doc._id}`));
-			this.db.collection("topics").update({_id : ObjectID(doc.topicID)}, {
-					$push: {
-						highlights: {"highlight": doc._id}
-					}
-			}).catch(err => console.error(err, `could not update topic : ${doc.topicName}`));
+			this.db.collection("highlights").insertOne(doc).then(()=> {
+				this.db.collection("topics").update({_id : doc.topicID}, {
+						$push: {
+							highlights: {"highlight": doc._id}
+						}
+				}).catch(err => console.error(err, `could not update topic : ${doc.topicID}`));
+			})
+			.catch(err => console.error(err, `could not insert ${doc._id}`));
+			
 		}
 	}
 
@@ -41,16 +43,22 @@ class MongoDB {
 	async update(highlight){
 		if (this.db){
 			this.db.collection("highlights").replaceOne({"_id" :  highlight._id}, highlight)
-																						.catch(err => console.log(err, `update failed for ${highlight._id}`));
+											.catch(err => console.log(err, `update failed for ${highlight._id}`));
 		}
 		else
 			console.error("Database instance not found");
 	}
 
 
-	async remove(uid){
+	async removeHighlight(highlight){
 		if(this.db){
-			this.db.collection("highlights").remove({"_id" : uid}).catch(e => console.error(e, ` error while removing highlight (UID: ${uid})`));
+			this.db.collection("topic").update({"_id": highlight.topicID}, {
+				"$pull": {
+					"highlights.highlight" : highlight._id
+				}
+			}).then(()=> {
+				this.db.collection("highlights").remove({"_id" : highlight._id});
+			}).catch(err => console.error(err, ` unable to remove highlight ${highlight._id}`));
 		}
 		else
 			console.error("Database instance not found");
@@ -70,10 +78,20 @@ class MongoDB {
 	async insertTopic(topic){
 		if(this.db){
 				this.db.collection("topics").insertOne(topic)
-																		.catch(err => console.error(err, `could not add topic ${name}`));
+				.catch(err => console.error(err, `could not add topic ${topic._id}`));
 		}
 		else
 			console.error("Database instance note found");
+	}
+
+	async removeTopic(topicName){
+		if(this.db){
+			this.db.collection("topics").deleteOne({"_id": topicName}).then(()=> {
+				this.db.collection("highlights").deleteMany({"topicID" : topicName});
+			}).catch(err => console.error(err, ` unable to remove topic ${topicName}`));
+		}
+		else
+			console.error("Database instance not found");
 	}
 
 
@@ -102,7 +120,7 @@ class MongoDB {
 	async getTopicHighlights(topicName){
 		let results;
 		if(this.db){
-			results = await this.db.collection("topics").aggregate([{ '$match' : {'name': topicName}}, {'$lookup': { 'from':'highlights', 'localField': 'highlights.highlight', 'foreignField': '_id', 'as': 'highlights'}}]).toArray();
+			results = await this.db.collection("topics").aggregate([{ '$match' : {'_id': topicName}}, {'$lookup': { 'from':'highlights', 'localField': 'highlights.highlight', 'foreignField': '_id', 'as': 'highlights'}}]).toArray();
 		}
 		else
 			console.error("Database instance not found");
@@ -110,7 +128,6 @@ class MongoDB {
 	}
 	
 }
-
 var db = new MongoDB();
 
 app.use(cors());
@@ -127,9 +144,9 @@ app.put("/updateHighlight", function(req, res){
 
 });
 
-app.delete("/removeHighlight/:id", function(req, res){
-	console.log(	`removing highlight ${req.params.id}`)
-	db.remove(req.params.id);
+app.put("/removeHighlight", function(req, res){
+	console.log(	`removing highlight ${req.body._id}`);
+	db.removeHighlight(req.body);
 });
 
 app.get("/getHighlights/:url/", function(req, res){
@@ -138,10 +155,8 @@ app.get("/getHighlights/:url/", function(req, res){
 		db.getHighlights(req.params.url.replace("url=", "")).then(results =>{
 			console.log(`found ${results.length}`);
 			res.send(results);
-
 		})
 		.catch(err => console.error(err, "Unable to fetch url highlights"));
-
 	}
 	catch(err){
 		console.error(err);
@@ -158,17 +173,21 @@ app.get("/getTopicHighlights/:topic", function(req, res){
 	console.log(`highlight request for topic : ${req.params.topic}`);
 	db.getTopicHighlights(req.params.topic).then(results =>
 		{
-			console.log(results);
-			console.log(results[0].highlights);
 			res.send(results[0].highlights);
 		})
-		.catch(err => console.error(err, `Unable to fetch topic highlights for : ${req.params.topic}`));
+	.catch(err => console.error(err, `Unable to fetch topic highlights for : ${req.params.topic}`));
 });
 
 app.put("/addTopic", function(req, res){
-	console.log(`Adding topic: ${req.body.name}`)
-	db.insertTopic(req.body).catch(err => console.error(err, ` Unable to add topic : ${req.body.name}` ));
+	console.log(`Adding topic: ${req.body._id}`);
+	db.insertTopic(req.body).catch(err => console.error(err, ` Unable to add topic : ${req.body._id}` ));
 });
+
+app.delete("/removeTopic/:id", function(req, res){
+	console.log(`removing topic: ${req.params.id}`);
+	db.removeTopic(req.params.id).catch(err => console.error(err, ` Unable to remove topic : ${req.body._id}` ));
+});
+
 
 app.get("/getTopics", function(req, res){
 	console.log(`Topics request`);

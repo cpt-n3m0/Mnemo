@@ -5,50 +5,62 @@
   padding: 16px;
   font-size: 16px;
   border: none;
+  width: 100%;
+  text-align: center;
 }
 
 /* The container <div> - needed to position the dropdown content */
 .dropdown {
   position: relative;
   display: inline-block;
+	width : 50%;
 }
 
-/* Dropdown Content (Hidden by Default) */
+.topic-options {
+	display: inline-block;
+	position: absolute;
+	right: 0px;
+	width: 50%;
+	height: 51px;
+	border: solid 2px white;
+	text-align: right;
+}
+.topic-option {
+	display: inline-block;
+	height: 80%;
+	width: 30px;
+	margin-right: 10px;
+
+}
+
 .dropdown-content {
   display: none;
   position: absolute;
   background-color: #f1f1f1;
   min-width: 160px;
+	width:100%;
   box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
   z-index: 1;
 }
 
-/* Links inside the dropdown */
 .dropdown-item, .option-add-topic {
   padding: 12px 16px;
   text-decoration: none;
   display: block;
+	width: 100%;
 }
 .dropdown-item{
   color: black;
 }
 
-/* Change color of dropdown links on hover */
 .dropdown-item:hover {background-color: #ddd;}
-
-
-/* Show the dropdown menu on hover */
 .dropdown:hover .dropdown-content {display: block;}
-
-/* Change the background color of the dropdown button when the dropdown content is shown */
 .dropdown:hover .dropbtn {background-color: #3e8e41;} 
-
 
 .option-add-topic {
 	background-color: #ff6600;	
 	color: white;
 }
-
 
 .option-add-topic:hover { background-color: #ff3300;}
 

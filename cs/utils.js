@@ -13,6 +13,14 @@ function clearSelection(selector){
 	}
 }
 
+function createButton(textContent, classes, id="")
+{
+	 	let newBtn = 	document.createElement("button");
+ 		newBtn.classList.add(...classes);
+		newBtn.textContent = textContent;
+		newBtn.id = id;
+		return newBtn;
+}
 
 
 function makeid() {

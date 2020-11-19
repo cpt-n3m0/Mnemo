@@ -1,9 +1,6 @@
 function loadHighlights(){
 	var location = (' ' + window.location).trim();
-	console.log("sending request");
 	browser.runtime.sendMessage({request: "loadHighlights", url: location}).then(highlights => {
-		console.log("response received");
-		console.log(highlights);
 		if(highlights.response.length > 0){
 			var urlHls = highlights.response;
 			console.log(urlHls);
@@ -30,7 +27,7 @@ function loadHighlights(){
 
 }
 
-function addHighlight(clr, tpcID, tpcName)
+function addHighlight(clr, tpcID)
 {
 		var highlights = [];
 
@@ -54,7 +51,6 @@ function addHighlight(clr, tpcID, tpcName)
 				_id : id,
 				url : r.startContainer.baseURI,
 				topicID: tpcID,
-				topicName: tpcName,
 				tags: [],
 				timestamp: new Date()
 			};
@@ -68,7 +64,6 @@ function addHighlight(clr, tpcID, tpcName)
 		});
 	}
 function removeHighlight(hl){
-	console.log("removing ");
 	let highlightComponents = document.querySelectorAll('kbit[data-uid="' + hl._id +'"]');
 
 	for(let c of highlightComponents){
@@ -87,18 +82,16 @@ function removeHighlight(hl){
 
 		pn.insertBefore(textNode, c);
 		pn.removeChild(c);
-		console.log("removed kbit node");
 	}
 
 	browser.runtime.sendMessage({request: "removeHighlight", toRemove: hl}).then(() => {
-			console.log("updating view after remove");
-			browser.runtime.sendMessage({request: "updateViewerContent"});
-		});
+		browser.runtime.sendMessage({request: "updateViewerContent"});
+	});
 }
 
 function updateHighlight(hl){
 	browser.runtime.sendMessage({request: "updateHighlight", newHighlight: hl}).then(() => {
-			browser.runtime.sendMessage({request: "updateViewerContent"});
-		});
+		browser.runtime.sendMessage({request: "updateViewerContent"});
+	});
 
 }

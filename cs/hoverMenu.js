@@ -1,36 +1,24 @@
 var IFRAME_HIGHLIGHTED_HEIGHT = "185px";
 var IFRAME_SELECTED_HEIGHT = "80px";
+var selectedTopic = "";
+
+function selectTopic (selectTopicBtn, n)
+{
+		selectTopicBtn.textContent = n;
+		selectedTopic = n;
+}
 
 function setupHoverMenuContent(activeHighlight, hovmen){
 	let idoc = hovmen.contentDocument;
-	let selectedTopic = {name: "", id: ""};
 	
 	let selectTopicBtn = idoc.querySelector(".selectTopic");
 	selectTopicBtn.onclick = () =>{
 			hovmen.style.height = IFRAME_HIGHLIGHTED_HEIGHT;
 			setViewVisibility(".topic-view", true, idoc)	;
 			setViewVisibility(".default-view", false, idoc)	;
-			
-	}
-	if(activeHighlight && activeHighlight.topic != "")
-		selectTopicBtn.textContent = activeHighlight.topicName;
-	else
-		browser.storage.local.get("lastSelectedTopic").then(result=> {
-			if(result && result.lastSelectedTopic != "")
-				selectTopicBtn.textContent = result.lastSelectedTopic;
-				selectedTopic = {name: result.lastSelectedTopic, id: result.topicID};
-		});
-	
-	let topicContainer = idoc.querySelector(".topic-selector");
-	browser.runtime.sendMessage({request: "getTopics"}).then(response => {
-		  console.log(response);
-			for(let t of response.topics)
-			{
-						let button = document.createElement("button");
-						button.classList.add("topic", "topic-view", "hidden-view");
-						button.id = t._id;
-						button.textContent = t.name;
-						button.onclick = () => {
+		}
+		
+	let topicBtnBehaviour = function btnBehaviour(button){
 								hovmen.style.height = activeHighlight?IFRAME_HIGHLIGHTED_HEIGHT:IFRAME_SELECTED_HEIGHT;
 								setViewVisibility(".topic-view", false, idoc)	;
 								setViewVisibility(".default-view", true, idoc)	;
@@ -38,23 +26,50 @@ function setupHoverMenuContent(activeHighlight, hovmen){
 
 								if(!button.classList.contains("exit-topic-view"))
 								{
-										selectedTopic.name = button.textContent;
-										selectedTopic.id = button.id;
-										selectTopicBtn.textContent = selectedTopic.name;
+										selectTopic(selectTopicBtn, button.textContent)
 								}
 								if(activeHighlight)
 								{
-									activeHighlight.topicID = selectedTopic._id;
-									activeHighlight.topicName = selectedTopic.name;
+									activeHighlight.topicID = selectedTopic;
 									updateHighlight(activeHighlight);
 									console.log(activeHighlight);
 								}
-							
-					};	
-					topicContainer.appendChild(button);
+									
+							};
+	
+	if(activeHighlight && activeHighlight.topic != "")
+		selectTopic(selectTopicBtn, activeHighlight.topicID);	
 
-			}
-	});
+	let topicContainer = idoc.querySelector(".topic-selector");
+	browser.storage.local.get("lastSelectedTopic").then(results => {
+		 console.log(results);
+			browser.runtime.sendMessage({request: "getTopics"}).then(response => {
+				let cancelBtn = createButton("Cancel", ["exit-topic-view", "topic-view", "hidden-view"]);
+				cancelBtn.onclick = () => topicBtnBehaviour(cancelBtn);
+				topicContainer.appendChild(cancelBtn);
+
+				for(let t of response.topics)
+				{
+						if(selectTopicBtn.textContent == "" && results && results.lastSelectedTopic == t._id )
+						{
+								selectTopic(selectTopicBtn, results.lastSelectedTopic);
+						}
+						let button = createButton(t._id,["topic", "topic-view", "hidden-view"], t._id )
+						button.onclick = () => topicBtnBehaviour(button);
+						topicContainer.appendChild(button);
+
+				}
+				console.log(selectTopicBtn.textContent);
+				if(selectTopicBtn.textContent == "")
+				{
+						let firstTopic = response.topics[0];
+						selectTopic(selectTopicBtn,  firstTopic._id);
+				}
+					
+			});
+
+	})
+	
 	
 
 	let colorOptions = idoc.getElementById("color-selector");
@@ -72,7 +87,7 @@ function setupHoverMenuContent(activeHighlight, hovmen){
 		e.onclick = () => {
 			if(activeHighlight == null)
 			{
-				addHighlight(e.dataset.clr, selectedTopic.id, selectedTopic.name);
+				addHighlight(e.dataset.clr, selectedTopic);
 				e.classList.add( "selected");
 				closeHoverMenu();
 				return;
