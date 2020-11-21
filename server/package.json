@@ -18,6 +18,7 @@
   },
   "homepage": "https://github.com/cpt-n3m0/myKbits#readme",
   "dependencies": {
-    "cors": "^2.8.5"
+    "cors": "^2.8.5",
+    "node-wget": "^0.4.3"
   }
 }

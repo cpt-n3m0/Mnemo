@@ -4,7 +4,7 @@ var scrollIntoViewRequest = null;
 window.onload = () => browser.tabs.query({active: true, lastFocusedWindow:true}).then(tabs => {
        updateContent(tabs[0].Id, null,tabs[0] );
      });
-browser.tabs.onActivated.addListener(updateContent);
+browser.tabs.onActivated.addListener((activeInfo) => browser.tabs.get(activeInfo.tabId).then((tab) => updateContent(tab, null, tab.id)));
 browser.tabs.onUpdated.addListener(updateContent);
 browser.runtime.onMessage.addListener(function(request, sender){
 	if(request.request == "updateViewerContent")
@@ -15,10 +15,26 @@ browser.runtime.onMessage.addListener(function(request, sender){
 	}
 });
 
+function refreshViewer(){
+	browser.tabs.query({active: true, lastFocusedWindow:true}).then(tabs => 
+	{
+		console.log("Refreshing view");
+		updateContent(tabs[0].id, null, tabs[0]);
+	});
+	browser.runtime.sendMessage({request: "updateViewerContent"});
+}
 function setupContainerBehavior(newEntry, tab, highlight){
 	let deleteBtn = newEntry.querySelector("img.delete-highlight" );
 	deleteBtn.onclick = () => {
-		removeHighlight(highlight);
+		if(tab.url == highlight.url)
+		{
+			browser.tabs.executeScript(tab.id, {
+				code: `removeHighlight(${JSON.stringify(highlight)})`
+			});
+		}
+		else
+			removeHighlight(highlight);
+		
 		updateContent(tab.tabId, null, tab);
 	}
 
@@ -88,11 +104,7 @@ function buildTopicElement(topicName="") {
 		 let topicSelectBtn = document.getElementById("topic-title");
 		 topicSelectBtn.textContent = topicElement.textContent;
 		 browser.storage.local.set({"lastSelectedTopic": topicElement.textContent})
-		 .then(() => 
-				browser.tabs.query({active: true, lastFocusedWindow:true}).then(tabs => {
-				 updateContent(tabs[0].id, null, tabs[0]);
-			}))
-		 .then(()=> browser.runtime.sendMessage({request: "updateViewerContent"}))
+		 .then(() => refreshViewer())
 		 .catch(err => console.error(err, " error updating view after topic selection"));
 	};
 		 
@@ -115,6 +127,7 @@ function setupAddTopicBehaviour(addTopBtn){
 							"highlights": []
 						};
 					browser.runtime.sendMessage({request: "addTopic", newTopic : nt});
+					browser.storage.local.set({"lastSelectedTopic" : nt._id}).then(refreshViewer);
 
 				}
 				
@@ -127,13 +140,16 @@ function setupAddTopicBehaviour(addTopBtn){
 
 function buildTopicSelectionMenu(topics)
 {
+	let topicsList = [];
 	let topicContainer = document.querySelector(".dropdown-content");
 	 
 	topicContainer.textContent = "";
 	for(let t of topics)
 	{
+		topicsList.push(t._id);
 		let topicElement = buildTopicElement(t._id);
 		topicContainer.appendChild(topicElement);
+
 	}
 
 	let addTopicBtn = document.createElement("a");
@@ -141,17 +157,21 @@ function buildTopicSelectionMenu(topics)
 	addTopicBtn.classList.add("option-add-topic");
 	setupAddTopicBehaviour(addTopicBtn);
 	topicContainer.appendChild(addTopicBtn);
+	return topicsList;
 }
 
 function setupTopicOptionsBehaviour(){
 	let removeBtn = document.getElementById("topic-option-remove");
+
+	removeBtn.onmouseover = () => removeBtn.src = "../icons/topic-delete-hover.svg";
+	removeBtn.onmouseout = () => removeBtn.src = "../icons/topic-delete.svg";
 	removeBtn.onclick = () => {
 		let tt = document.getElementById("topic-title");
 		let old = tt.textContent;
 		let topics = document.getElementById("topic-selection");
 		if(topics.childNodes.length > 2)
 		{	
-			for(let e of topics.childNodes)
+			/*for(let e of topics.childNodes)
 				if(e.textContent == tt.textContent)
 				{
 					topics.removeChild(e);
@@ -160,13 +180,15 @@ function setupTopicOptionsBehaviour(){
 					browser.storage.local.set({"lastSelectedTopic": tt.textContent});
 					break;
 				}
+			*/
 			browser.runtime.sendMessage({request: "removeTopic", toRemove: old});
+			browser.storage.local.set({"lastSelectedTopic": tt.textContent}).then(refreshViewer);
 		}	
 	}
 	let editBtn = document.getElementById("topic-option-edit");
 
 }
-function updateContent(tabId, changeInfo, tab, topic=null){
+function updateContent(tabId, changeInfo, tab){
 	if(changeInfo && changeInfo.status != "complete")
 		return;
 	if(scrollIntoViewRequest != null)
@@ -183,14 +205,21 @@ function updateContent(tabId, changeInfo, tab, topic=null){
 	
 
 	browser.runtime.sendMessage({request: "getTopics"}).then(response => {
+		let topicsList;
 		if(response.topics)	
-			buildTopicSelectionMenu(response.topics);
+			topicsList = buildTopicSelectionMenu(response.topics);
 		else
 			console.error("Topics not found");
 
 		browser.storage.local.get("lastSelectedTopic").then(result => {
-			if( !result.lastSelectedTopic || result.lastSelectedTopic == "" )
-				 browser.storage.local.set({"lastSelectedTopic": response.topics[0]._id});
+			console.log(topicsList);
+			console.log(result.lastSelectedTopic);
+			if( !result.lastSelectedTopic || result.lastSelectedTopic == "" || topicsList.indexOf(result.lastSelectedTopic) < 0  )
+			{
+				 browser.storage.local.set({"lastSelectedTopic": topicsList[0]});
+				 console.log(`topic list not up to date default selected : ${topicsList[0]}`)
+
+			}
 		});
 	})
 	.then(()=> {
@@ -203,7 +232,6 @@ function updateContent(tabId, changeInfo, tab, topic=null){
 								while(hlList.firstChild){
 									hlList.removeChild(hlList.firstChild);
 								}
-								console.log(response);
 								for(let hl of response.highlights){
 									hlList.appendChild(buildHLDisplayElement(hl, tab));
 								}

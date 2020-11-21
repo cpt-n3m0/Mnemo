@@ -30,8 +30,9 @@ function setupHoverMenuContent(activeHighlight, hovmen){
 								}
 								if(activeHighlight)
 								{
+									let oldTopic = activeHighlight.topicID;
 									activeHighlight.topicID = selectedTopic;
-									updateHighlight(activeHighlight);
+									updateHighlight(activeHighlight, oldTopic=((oldTopic != selectedTopic)?oldTopic:""));
 									console.log(activeHighlight);
 								}
 									

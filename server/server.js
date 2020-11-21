@@ -40,10 +40,32 @@ class MongoDB {
 	}
 
 
-	async update(highlight){
+	async updateHighlight(highlight){
+		let oldTopic = highlight.oldTopic;
+		delete highlight.oldTopic;
+
 		if (this.db){
-			this.db.collection("highlights").replaceOne({"_id" :  highlight._id}, highlight)
-											.catch(err => console.log(err, `update failed for ${highlight._id}`));
+			this.db.collection("highlights").replaceOne({"_id" :  highlight._id}, highlight).then(() => {
+				if (oldTopic)
+				{
+					
+					console.log("UPDATING TOPICs");
+					this.db.collection("topics").update({"_id": oldTopic}, {
+						"$pull": {
+							"highlights" : {"highlight" :highlight._id }
+						}
+					})
+					.then(() => {
+						this.db.collection("topics").update({"_id": highlight.topicID}, {
+						"$push": {
+							"highlights" : {"highlight" :highlight._id }
+							}
+						});
+			 			
+					})
+				}
+			})
+			.catch(err => console.log(err, `update failed for ${highlight._id}`));
 		}
 		else
 			console.error("Database instance not found");
@@ -52,9 +74,9 @@ class MongoDB {
 
 	async removeHighlight(highlight){
 		if(this.db){
-			this.db.collection("topic").update({"_id": highlight.topicID}, {
+			this.db.collection("topics").update({"_id": highlight.topicID}, {
 				"$pull": {
-					"highlights.highlight" : highlight._id
+					"highlights" : {"_id" :highlight._id }
 				}
 			}).then(()=> {
 				this.db.collection("highlights").remove({"_id" : highlight._id});
@@ -140,7 +162,8 @@ app.put("/addHighlight", function(req, res){
 
 app.put("/updateHighlight", function(req, res){
 	console.log(`update highlight ${req.body._id}`)
-	db.update(req.body);
+	console.log(req.body.oldTopic);
+	db.updateHighlight(req.body);
 
 });
 

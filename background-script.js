@@ -14,6 +14,7 @@ async function addHighlight(highlight){
 		console.error('Error:', error);
 	});	
 }
+
 async function removeHighlight(highlight){
 	await	fetch(`${dburl}/removeHighlight`, {
 		method: 'PUT', 
@@ -28,7 +29,15 @@ async function removeHighlight(highlight){
 		console.error('Error:', error);
 	});	
 }
-async function updateHighlight(highlight){
+
+async function updateHighlight(highlight, oldTopic){
+	if(oldTopic != "")
+	{
+
+		highlight.oldTopic = oldTopic;
+		console.log("add old topic to highlight");
+	}
+
 	await	fetch(`${dburl}/updateHighlight`, {
 		method: 'PUT', 
 		mode: 'cors', 
@@ -131,16 +140,19 @@ browser.runtime.onMessage.addListener( function(request, sender){
 					addHighlight(e);
 				}
 			}
-			isCacheCoherent = false;
 			break;
+
 		case "updateHighlight":
-			updateHighlight(request.newHighlight);
-			isCacheCoherent = false;
+			console.log(`updating highlight ${request.newHighlight._id}`);
+			console.log(`old highlight topic : ${request.oldTopic}`);
+			console.log(`new highlight topic : ${request.newHighlight.topicID}`);
+			updateHighlight(request.newHighlight, request.oldTopic);
 			break;
+
 		case "removeHighlight":
 			removeHighlight(request.toRemove);
-			isCacheCoherent = false;
 			break;
+			
 		case "viewer-getHighlights":
 			console.log("viewer request received");
 			return getAllHighlights().then(response => response.json())
@@ -151,14 +163,17 @@ browser.runtime.onMessage.addListener( function(request, sender){
 			 console.log("received Topic highlights request");
 			return getTopicHighlights(request.topicName). then(data => data.json()).then(data => {
 				return {highlights : data}
-			})
+			});
+
 		case "getTopics":
 			console.log("received Topics request");
 			return getTopics().then(data => data.json()).then(data =>{ 
 					return {topics: data}});
+
 		case "addTopic":
 			console.log(`received Add topic request : ${request.newTopic._id}`);
 			return addTopic(request.newTopic);
+
 		case "removeTopic": 
 			console.log(`received remove topic request: ${request.toRemove}`)
 			return	removeTopic(request.toRemove);

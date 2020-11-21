@@ -89,8 +89,9 @@ function removeHighlight(hl){
 	});
 }
 
-function updateHighlight(hl){
-	browser.runtime.sendMessage({request: "updateHighlight", newHighlight: hl}).then(() => {
+function updateHighlight(hl, ot=""){
+	console.log(`new highlight topic is ${ot}`);
+	browser.runtime.sendMessage({request: "updateHighlight", newHighlight: hl, oldTopic: ot}).then(() => {
 		browser.runtime.sendMessage({request: "updateViewerContent"});
 	});
 
