@@ -155,7 +155,7 @@ function hoverMenu(activeHighlight=null){
 	const hovmen = document.createElement('iframe');
 	hovmen.id = "mykbits-hoverMenu";
 	hovmen.style.height = (activeHighlight)?IFRAME_HIGHLIGHTED_HEIGHT:IFRAME_SELECTED_HEIGHT;
-	hovmen.src = browser.runtime.getURL("resources/menu.html");
+	hovmen.src = browser.runtime.getURL("resources/hoverMenu/menu.html");
 	
 	let iframeContainer = document.createElement("div");
 	iframeContainer.id = "mykbits-hoverMenuContainer";

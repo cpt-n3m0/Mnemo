@@ -68,9 +68,21 @@ function setupContainerBehavior(newEntry, tab, highlight){
 	};
 
 	let copyBtn = newEntry.querySelector(".copy");
-	copyBtn.onclick =  function copy(){
-			navigator.clipboard.writeText(highlight.text)
-	}
+	/*copyBtn.onclick =  function copy(){*/
+			//navigator.clipboard.writeText(highlight.text)
+	/*}*/
+	copyBtn.onclick = () => {
+		let options = {
+			type:"popup",
+			url: "../resources/anki_popup/anki_form.html",
+			width: 260,
+			height: 210,
+			allowScriptsToClose: true,
+			titlePreface: "Anki"
+		}
+		browser.windows.create(options);
+		
+	}; 
 }
 
 function buildHLDisplayElement(highlight, tab){
@@ -232,6 +244,7 @@ function updateContent(tabId, changeInfo, tab){
 								while(hlList.firstChild){
 									hlList.removeChild(hlList.firstChild);
 								}
+								response.highlights.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
 								for(let hl of response.highlights){
 									hlList.appendChild(buildHLDisplayElement(hl, tab));
 								}

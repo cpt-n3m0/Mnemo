@@ -1,6 +1,8 @@
 var express = require("express");
+var https = require('https');
 var bodyParser= require("body-parser");
 var cors = require("cors");
+var tagger = require("./tagger");
 var {MongoClient, ObjectID} = require("mongodb");
 var app = express();
 
@@ -26,6 +28,7 @@ class MongoDB {
 	}
 
 	async insertHighlight(doc){
+		console.log(doc);
 		if(this.db){
 			this.db.collection("highlights").insertOne(doc).then(()=> {
 				this.db.collection("topics").update({_id : doc.topicID}, {
@@ -152,12 +155,15 @@ class MongoDB {
 }
 var db = new MongoDB();
 
+
 app.use(cors());
 app.use(bodyParser.json());
+app.use("/addHighlight", tagger.tag);
 
 app.put("/addHighlight", function(req, res){
 	console.log(`Adding highlight ${req.body._id}`)
 	db.insertHighlight(req.body);
+	
 });
 
 app.put("/updateHighlight", function(req, res){
