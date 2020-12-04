@@ -1,4 +1,6 @@
- /* Dropdown Button */
+.header{
+	border-bottom: solid grey 5px;
+}
 .dropbtn {
   background-color: #4CAF50;
   color: white;
@@ -22,7 +24,6 @@
 	right: 0px;
 	width: 50%;
 	height: 51px;
-	border: solid 2px white;
 	text-align: right;
 }
 .topic-option {
@@ -30,6 +31,7 @@
 	height: 80%;
 	width: 30px;
 	margin-right: 10px;
+	cursor: pointer;
 
 }
 

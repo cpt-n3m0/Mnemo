@@ -52,6 +52,7 @@ function addHighlight(clr, tpcID)
 				url : r.startContainer.baseURI,
 				topicID: tpcID,
 				tags: [],
+                ankied: false,
 				timestamp: new Date()
 			};
 
@@ -72,7 +73,7 @@ function removeHighlight(hl){
 		let prevText = (c.previousSibling && c.previousSibling.nodeType == 3)?c.previousSibling.wholeText:"";
 		let nextText = (c.nextSibling && c.nextSibling.nodeType == 3)?c.nextSibling.wholeText:"";
 		let textNode = document.createTextNode( prevText + c.lastChild.wholeText + nextText);
-		
+
 		console.log(textNode);
 
 		if(prevText != "")
@@ -89,8 +90,8 @@ function removeHighlight(hl){
 	});
 }
 
-function updateHighlight(hl){
-	browser.runtime.sendMessage({request: "updateHighlight", newHighlight: hl}).then(() => {
+function updateHighlight(hl, ot=""){
+	browser.runtime.sendMessage({request: "updateHighlight", newHighlight: hl, oldTopic: ot}).then(() => {
 		browser.runtime.sendMessage({request: "updateViewerContent"});
 	});
 
