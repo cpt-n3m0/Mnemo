@@ -2,23 +2,24 @@ var dburl = "http://localhost:8082";
 
 async function addHighlight(highlight){
 	await	fetch(`${dburl}/addHighlight`, {
-		method: 'PUT', 
-		mode: 'cors', 
+		method: 'PUT',
+		mode: 'cors',
 		cache: 'no-cache',
 		headers: {
 		  'Content-Type': 'application/json'
 		},
 		body: JSON.stringify(highlight) // body data type must match "Content-Type" header
 	})
+    .then(resp => browser.runtime.sendMessage({request : "updateViewerContent"}))
 	.catch((error) => {
 		console.error('Error:', error);
-	});	
+	});
 }
 
 async function removeHighlight(highlight){
 	await	fetch(`${dburl}/removeHighlight`, {
-		method: 'PUT', 
-		mode: 'cors', 
+		method: 'PUT',
+		mode: 'cors',
 		cache: 'no-cache',
 		headers: {
 		  'Content-Type': 'application/json'
@@ -27,7 +28,7 @@ async function removeHighlight(highlight){
 	})
 	.catch((error) => {
 		console.error('Error:', error);
-	});	
+	});
 }
 
 async function updateHighlight(highlight, oldTopic){
@@ -39,43 +40,43 @@ async function updateHighlight(highlight, oldTopic){
 	}
 
 	await	fetch(`${dburl}/updateHighlight`, {
-		method: 'PUT', 
-		mode: 'cors', 
+		method: 'PUT',
+		mode: 'cors',
 		cache: 'no-cache',
 		headers: {
 		  'Content-Type': 'application/json'
 		},
-		body: JSON.stringify(highlight) 
+		body: JSON.stringify(highlight)
 	})
 	.catch((error) => {
 		console.error('Error:', error);
-	});	
+	});
 }
 
 async function addTopic(topic){
 	await	fetch(`${dburl}/addTopic`, {
-		method: 'PUT', 
-		mode: 'cors', 
+		method: 'PUT',
+		mode: 'cors',
 		cache: 'no-cache',
 		headers: {
 		  'Content-Type': 'application/json'
 		},
-		body: JSON.stringify(topic) 
+		body: JSON.stringify(topic)
 	})
 	.catch((error) => {
 		console.error('Error:', error);
-	});	
+	});
 }
 
 async function removeTopic(topicName){
 	await	fetch(`${dburl}/removeTopic/${topicName}`, {
-		method: 'DELETE', 
-		mode: 'cors', 
+		method: 'DELETE',
+		mode: 'cors',
 		cache: 'no-cache',
 	})
 	.catch((error) => {
 		console.error('Error:', error);
-	});	
+	});
 }
 async function getTopics(){
 	let topicsResponse = await	fetch(`${dburl}/getTopics`)
@@ -101,8 +102,8 @@ async function getTopicHighlights(topicName){
 }
 async function getAllHighlights(){
 	var HighlightsResponse = await	fetch(`${dburl}/getAllHighlights`, {
-		method: 'GET', 
-    mode: 'cors', 
+		method: 'GET',
+    mode: 'cors',
     cache: 'no-cache',
     headers: {
       'Content-Type': 'application/json'
@@ -114,12 +115,21 @@ async function getAllHighlights(){
 	return HighlightsResponse;
 }
 
-function optionStatus(){
-	console.log(browser.runtime.lastError);
-}
+async function addAnkiNote(ankiNote){
+	await fetch(`${dburl}/addAnkiNote`, {
+		method: 'POST',
+		mode: 'cors',
+		cache: 'no-cache',
+		headers: {
+		  'Content-Type': 'application/json'
+		},
+		body: JSON.stringify(ankiNote)
+	}).then(resp  => {
+        console.log(resp);
+        browser.runtime.sendMessage({request: "updateViewerContent"});
+    });
 
-function onError(error){
-	console.log(error);
+
 }
 
 browser.runtime.onMessage.addListener( function(request, sender){
@@ -128,12 +138,12 @@ browser.runtime.onMessage.addListener( function(request, sender){
 	switch(request.request){
 		case "loadHighlights":
 			 return getUrlHighlights(request.url).then(response => response.json())
-				.then(data => { 
+				.then(data => {
 					console.log("data loaded : ");
 					console.log(data);
 					return {response : data};
 				});
-																  
+
 		case "saveHighlight":
 			if(request.hl){
 				for (let e of request.hl){
@@ -143,20 +153,17 @@ browser.runtime.onMessage.addListener( function(request, sender){
 			break;
 
 		case "updateHighlight":
-			console.log(`updating highlight ${request.newHighlight._id}`);
-			console.log(`old highlight topic : ${request.oldTopic}`);
-			console.log(`new highlight topic : ${request.newHighlight.topicID}`);
 			updateHighlight(request.newHighlight, request.oldTopic);
 			break;
 
 		case "removeHighlight":
 			removeHighlight(request.toRemove);
 			break;
-			
+
 		case "viewer-getHighlights":
 			console.log("viewer request received");
 			return getAllHighlights().then(response => response.json())
-									.then( data => { 
+									.then( data => {
 											return {highlights: data};
 									});
 		case "getTopicHighlights":
@@ -167,16 +174,19 @@ browser.runtime.onMessage.addListener( function(request, sender){
 
 		case "getTopics":
 			console.log("received Topics request");
-			return getTopics().then(data => data.json()).then(data =>{ 
+			return getTopics().then(data => data.json()).then(data =>{
 					return {topics: data}});
 
 		case "addTopic":
 			console.log(`received Add topic request : ${request.newTopic._id}`);
 			return addTopic(request.newTopic);
 
-		case "removeTopic": 
+		case "removeTopic":
 			console.log(`received remove topic request: ${request.toRemove}`)
 			return	removeTopic(request.toRemove);
+        case "addAnkiNote":
+            console.log("adding anki note");
+            return addAnkiNote(request.newAnkiNote);
 	}
 });
 console.log("Loaded");

@@ -52,6 +52,7 @@ function addHighlight(clr, tpcID)
 				url : r.startContainer.baseURI,
 				topicID: tpcID,
 				tags: [],
+                ankied: false,
 				timestamp: new Date()
 			};
 
@@ -72,7 +73,7 @@ function removeHighlight(hl){
 		let prevText = (c.previousSibling && c.previousSibling.nodeType == 3)?c.previousSibling.wholeText:"";
 		let nextText = (c.nextSibling && c.nextSibling.nodeType == 3)?c.nextSibling.wholeText:"";
 		let textNode = document.createTextNode( prevText + c.lastChild.wholeText + nextText);
-		
+
 		console.log(textNode);
 
 		if(prevText != "")

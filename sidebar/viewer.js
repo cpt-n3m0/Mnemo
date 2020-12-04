@@ -16,7 +16,7 @@ browser.runtime.onMessage.addListener(function(request, sender){
 });
 
 function refreshViewer(){
-	browser.tabs.query({active: true, lastFocusedWindow:true}).then(tabs => 
+	browser.tabs.query({active: true, lastFocusedWindow:true}).then(tabs =>
 	{
 		console.log("Refreshing view");
 		updateContent(tabs[0].id, null, tabs[0]);
@@ -34,11 +34,11 @@ function setupContainerBehavior(newEntry, tab, highlight){
 		}
 		else
 			removeHighlight(highlight);
-		
+
 		updateContent(tab.tabId, null, tab);
 	}
 
-	let goToLinkBtn =newEntry.querySelector("img.gotolink" ); 
+	let goToLinkBtn =newEntry.querySelector("img.gotolink" );
 	goToLinkBtn.onclick = () => {
 		if(tab.url == highlight.url)
 		{
@@ -46,7 +46,7 @@ function setupContainerBehavior(newEntry, tab, highlight){
 				code : `document.querySelector("kbit[data-uid='${highlight._id}']").scrollIntoView();`
 			});
 			return;
-		}	
+		}
 		browser.tabs.update(tab.tabId, {url: highlight.url}).then( t => scrollIntoViewRequest = highlight);
 	}
 
@@ -68,21 +68,25 @@ function setupContainerBehavior(newEntry, tab, highlight){
 	};
 
 	let copyBtn = newEntry.querySelector(".copy");
-	/*copyBtn.onclick =  function copy(){*/
-			//navigator.clipboard.writeText(highlight.text)
-	/*}*/
-	copyBtn.onclick = () => {
-		let options = {
-			type:"popup",
-			url: "../resources/anki_popup/anki_form.html",
-			width: 260,
-			height: 210,
-			allowScriptsToClose: true,
-			titlePreface: "Anki"
-		}
-		browser.windows.create(options);
-		
-	}; 
+	copyBtn.onclick =  function copy(){
+			navigator.clipboard.writeText(highlight.text)
+	}
+    let ankiBtn = newEntry.querySelector(".add-to-anki");
+    if(highlight.ankied)
+        ankiBtn = ()=>{};
+    else
+    	ankiBtn.onclick = () => {
+    		let options = {
+    			type:"popup",
+    			url: "../resources/anki_popup/anki_form.html",
+    			width: 472,
+    			height: 450,
+    			allowScriptsToClose: true,
+    			titlePreface: "Anki"
+    		}
+            browser.storage.local.set({"anki_kbit" : highlight}).then(() => browser.windows.create(options));
+        };
+
 }
 
 function buildHLDisplayElement(highlight, tab){
@@ -90,17 +94,16 @@ function buildHLDisplayElement(highlight, tab){
 	newEntry.className = "entry";
 	newEntry.innerHTML = `
 				<div class="entry-content" id="${highlight._id}" style="border-left: solid 10px ${highlight.color};"><p>${highlight.text} </p>
-					<div class="entry-note-container" style="display: ${highlight.note != ""?"block":"none"}">		
+					<div class="entry-note-container" style="display: ${highlight.note != ""?"block":"none"}">
 						<img src='../icons/ellipses.svg' title='showNote'>
 					</div>
 					<div class="entry-options">
 						<img class="delete-highlight" src="../icons/delete.svg" title="delete highlight">
 						<img class="gotolink" src="../icons/external-link.svg" title="go to source">
 						<img class="copy" src="../icons/copy.svg" title="copy content">
+						<img class="add-to-anki" src=../icons/${highlight.ankied?"task":"flag"}.svg title=${highlight.ankied?"Added to Anki":"Add to Anki"}>
 					</div>
 				</div>
-                                
-		</div>
 	`;
 
 	setupContainerBehavior(newEntry, tab, highlight);
@@ -119,7 +122,7 @@ function buildTopicElement(topicName="") {
 		 .then(() => refreshViewer())
 		 .catch(err => console.error(err, " error updating view after topic selection"));
 	};
-		 
+
 	return topicElement;
 }
 
@@ -142,7 +145,7 @@ function setupAddTopicBehaviour(addTopBtn){
 					browser.storage.local.set({"lastSelectedTopic" : nt._id}).then(refreshViewer);
 
 				}
-				
+
 		}
 		addTopBtn.parentElement.insertBefore(newTopicElement, addTopBtn);
 		newTopicElement.focus();
@@ -154,7 +157,7 @@ function buildTopicSelectionMenu(topics)
 {
 	let topicsList = [];
 	let topicContainer = document.querySelector(".dropdown-content");
-	 
+
 	topicContainer.textContent = "";
 	for(let t of topics)
 	{
@@ -182,20 +185,10 @@ function setupTopicOptionsBehaviour(){
 		let old = tt.textContent;
 		let topics = document.getElementById("topic-selection");
 		if(topics.childNodes.length > 2)
-		{	
-			/*for(let e of topics.childNodes)
-				if(e.textContent == tt.textContent)
-				{
-					topics.removeChild(e);
-					tt.textContent = topics.childNodes[0].textContent;
-					console.log(`text content : ${tt.textContent}`);
-					browser.storage.local.set({"lastSelectedTopic": tt.textContent});
-					break;
-				}
-			*/
+		{
 			browser.runtime.sendMessage({request: "removeTopic", toRemove: old});
 			browser.storage.local.set({"lastSelectedTopic": tt.textContent}).then(refreshViewer);
-		}	
+		}
 	}
 	let editBtn = document.getElementById("topic-option-edit");
 
@@ -214,11 +207,11 @@ function updateContent(tabId, changeInfo, tab){
 		});
 		scrollIntoViewRequest = null;
 	}
-	
+
 
 	browser.runtime.sendMessage({request: "getTopics"}).then(response => {
 		let topicsList;
-		if(response.topics)	
+		if(response.topics)
 			topicsList = buildTopicSelectionMenu(response.topics);
 		else
 			console.error("Topics not found");
@@ -256,5 +249,5 @@ function updateContent(tabId, changeInfo, tab){
 	.catch(e => console.error(e));
 
 	setupTopicOptionsBehaviour();
-		
+
 }
