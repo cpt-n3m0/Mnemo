@@ -1,5 +1,7 @@
-var MAX_TOPIC_LENGTH= 15;
+var MAX_TOPIC_LENGTH= 20;
 var scrollIntoViewRequest = null;
+var colorFilterMenuOpen = false;
+var isOrderAscending = false;
 
 window.onload = () => browser.tabs.query({active: true, lastFocusedWindow:true}).then(tabs => {
        updateContent(tabs[0].Id, null,tabs[0] );
@@ -63,7 +65,7 @@ function setupContainerBehavior(newEntry, tab, highlight){
 		if(noteContent.firstChild.localName != 'p')
 			noteContent.innerHTML = '<p class="entry-note"> ' + highlight.note+ '</p>';
 		else
-			noteContent.innerHTML = "<img src='../icons/ellipses.svg' title='show note'>";
+			noteContent.innerHTML = "<img src='../resources/icons/ellipses.svg' title='show note'>";
 
 	};
 
@@ -95,13 +97,13 @@ function buildHLDisplayElement(highlight, tab){
 	newEntry.innerHTML = `
 				<div class="entry-content" id="${highlight._id}" style="border-left: solid 10px ${highlight.color};"><p>${highlight.text} </p>
 					<div class="entry-note-container" style="display: ${highlight.note != ""?"block":"none"}">
-						<img src='../icons/ellipses.svg' title='showNote'>
+						<img src='../resources/icons/ellipses.svg' title='showNote'>
 					</div>
 					<div class="entry-options">
-						<img class="delete-highlight" src="../icons/delete.svg" title="delete highlight">
-						<img class="gotolink" src="../icons/external-link.svg" title="go to source">
-						<img class="copy" src="../icons/copy.svg" title="copy content">
-						<img class="add-to-anki" src=../icons/${highlight.ankied?"task":"flag"}.svg title=${highlight.ankied?"Added to Anki":"Add to Anki"}>
+						<img class="delete-highlight" src="../resources/icons/delete.svg" title="delete highlight">
+						<img class="gotolink" src="../resources/icons/external-link.svg" title="go to source">
+						<img class="copy" src="../resources/icons/copy.svg" title="copy content">
+						<img class="add-to-anki" src=../resources/icons/${highlight.ankied?"task":"flag"}.svg title=${highlight.ankied?"Added to Anki":"Add to Anki"}>
 					</div>
 				</div>
 	`;
@@ -140,7 +142,7 @@ function setupAddTopicBehaviour(addTopBtn){
 						let nt= {
 							"_id" : newTopicElement.textContent,
 							"highlights": []
-						};
+						}
 					browser.runtime.sendMessage({request: "addTopic", newTopic : nt});
 					browser.storage.local.set({"lastSelectedTopic" : nt._id}).then(refreshViewer);
 
@@ -178,8 +180,8 @@ function buildTopicSelectionMenu(topics)
 function setupTopicOptionsBehaviour(){
 	let removeBtn = document.getElementById("topic-option-remove");
 
-	removeBtn.onmouseover = () => removeBtn.src = "../icons/topic-delete-hover.svg";
-	removeBtn.onmouseout = () => removeBtn.src = "../icons/topic-delete.svg";
+	removeBtn.onmouseover = () => removeBtn.src = "../resources/icons/topic-delete-hover.svg";
+	removeBtn.onmouseout = () => removeBtn.src = "../resources/icons/topic-delete.svg";
 	removeBtn.onclick = () => {
 		let tt = document.getElementById("topic-title");
 		let old = tt.textContent;
@@ -193,7 +195,65 @@ function setupTopicOptionsBehaviour(){
 	let editBtn = document.getElementById("topic-option-edit");
 
 }
-function updateContent(tabId, changeInfo, tab){
+function setupFiltersBehaviour(tabId, changeInfo, tab, topic_clrs){
+	
+
+	let colorFilter = document.querySelector(".color-filter-container");	
+	colorFilter.onclick = () => { 
+		colorFilterMenuOpen = !colorFilterMenuOpen;
+		document.querySelector(".menu-arrow").src = `../resources/icons/chevron-${colorFilterMenuOpen?"top":"bottom"}.svg`;
+		document.getElementById("color-filter-menu").style.display = colorFilterMenuOpen?"block":"None";
+	}
+
+	let colorDropdown = document.getElementById("color-filter-menu");
+	colorDropdown.textContent = "";
+
+	let create_color_option = (clr) => {
+		let color_selection = document.createElement("div");
+		color_selection.classList.add("highlight-color", "dropdown-item");
+		color_selection.style.borderBottom = "solid grey 1px";
+		color_selection.style.backgroundColor = clr;
+		color_selection.dataset.clr = clr;
+
+		color_selection.onclick = () => {
+			let selected = color_selection.dataset.clr;
+			colorFilter.click();
+			updateContent(tabId, changeInfo, tab, (selected == "#ffffff")?"":selected );
+		}
+		return color_selection;
+	}
+
+	let disable_color_filter_option = create_color_option("#ffffff");
+	colorDropdown.appendChild(disable_color_filter_option);
+	
+	for(clr of topic_clrs)
+	{
+		let color_selection = create_color_option(clr);
+		
+		colorDropdown.appendChild(color_selection);
+	}
+
+	let disp_order = document.querySelector(".display-order")
+	disp_order.onclick = () => {
+		let hex = (x) => { 
+			var hexDigits = new Array("0","1","2","3","4","5","6","7","8","9","a","b","c","d","e","f"); 
+			return isNaN(x) ? "00" : hexDigits[(x - x % 16) / 16] + hexDigits[x % 16] 
+		}
+		let rgb2hex = (rgb) =>{
+				 rgb = rgb.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
+			if (rgb == null || rgb.filter(e => e == 255).length == 3)
+					return "";
+				 return "#" + hex(rgb[1]) + hex(rgb[2]) + hex(rgb[3]);
+			} 	
+		isOrderAscending = !isOrderAscending;
+		disp_order.src = `../resources/icon/sort-${isOrderAscending?"ascending":"descending"}.svg`;
+		console.log(rgb2hex(document.querySelector(".selected-color").style.backgroundColor))
+		updateContent(tabId, changeInfo, tab, rgb2hex(document.querySelector(".selected-color").style.backgroundColor), isOrderAscending );
+	}
+
+}
+function updateContent(tabId, changeInfo, tab, colorFilter="", dispAscending=true){
+	document.querySelector(".selected-color").style.backgroundColor = colorFilter != ""?colorFilter:"#ffffff";
 	if(changeInfo && changeInfo.status != "complete")
 		return;
 	if(scrollIntoViewRequest != null)
@@ -237,10 +297,21 @@ function updateContent(tabId, changeInfo, tab){
 								while(hlList.firstChild){
 									hlList.removeChild(hlList.firstChild);
 								}
-								response.highlights.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+								if(dispAscending)
+									response.highlights.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+								else
+									response.highlights.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
+								let topic_clrs = [];
 								for(let hl of response.highlights){
+									if(topic_clrs.indexOf(hl.color) == -1)
+										topic_clrs.push(hl.color)
+									if(colorFilter != "" && hl.color != colorFilter )
+										continue;
 									hlList.appendChild(buildHLDisplayElement(hl, tab));
 								}
+								document.getElementById("hl-count").textContent = hlList.childNodes.length + " highlights";
+								setupFiltersBehaviour(tabId, changeInfo, tab,topic_clrs)
+								console.log(topic_clrs)
 						})
 			.catch(e => console.error(e));
 		})

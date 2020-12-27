@@ -80,7 +80,7 @@ function escapeSpecialCharacters(text, xquery = false){
 
 }
 
-function getHoverColor(color, n){
+function getHoverColor(color, n=40){
 	if(color.startsWith("rgb")){
 		let vals = color.slice(4, -1).split(",");
 		vals[0] = (parseInt(vals[0], 10) + n).toString(10);

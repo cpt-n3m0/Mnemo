@@ -19,6 +19,8 @@
   "homepage": "https://github.com/cpt-n3m0/myKbits#readme",
   "dependencies": {
     "cors": "^2.8.5",
+    "express": "^4.17.1",
+    "mongodb": "^3.6.3",
     "node-wget": "^0.4.3",
     "semantria-sdk": "http://www.semantria.com/download/SDK/SemantriaNodejsSDK.tar.gz"
   }

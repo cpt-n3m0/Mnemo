@@ -49,7 +49,7 @@ exports.addNote = async function(an) {
         "version": 6,
         "params": {
             "note": {
-                "deckName": "Test Deck",
+                "deckName": "General Knowledge",
                 "modelName": "Basic",
                 "fields": {
                     "Front": an.front,

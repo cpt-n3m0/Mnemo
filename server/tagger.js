@@ -11,6 +11,8 @@ exports.tag = async function(request, response, next){
 	let tags = [];
 	const req =  https.request(options, res => {
 		console.log(`statusCode: ${res.statusCode}`);
+		
+			
 		let respObject = [] ;
 		let respSize = 0;
 		res.on('data', chunk =>{
@@ -18,9 +20,17 @@ exports.tag = async function(request, response, next){
 			respSize += chunk.length;
 		} );
 		res.on('end', () => {
+		
+			
 			respObject = JSON.parse(Buffer.concat(respObject, respSize).toString());
 			
-			console.log(respObject.entity_list);
+			console.log(request.body.url);
+			console.log(respObject);
+			if(respObject.status.code != '200')
+			{
+				next();
+				return;
+			}
 			for (let e of respObject.entity_list)
 			{
 				if(e.sementity.type && (e.sementity.type == "Top" || e.sementity.type.indexOf("MethodSystem") > -1 ) && tags.indexOf(e.form) == -1) 
@@ -35,8 +45,13 @@ exports.tag = async function(request, response, next){
 			next();
 		});
 	});
-	req.on('error', err => console.error(err));
-	req.write(`${new URLSearchParams({"lang": "en", "key" : "d73eb84997ffe0489c85d52674710f80", "url": request.body.url, "uw" : "y", "of" : "json", "tt" : "ec" })}`);
+	req.on('error', err => {
+		console.error(err);
+		next();
+	} );
+	let query = `${new URLSearchParams({"lang": "en", "key" : "d73eb84997ffe0489c85d52674710f80", "url": request.body.url, "uw" : "y", "of" : "json", "tt" : "ec" })}`;
+	console.log(query);
+	req.write(query);
 
 	req.end();
 } 
